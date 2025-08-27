@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [name, setName] = useState("");
+    const inputRef = useRef(null);
 
     const handleStart = () => {
         setIsModalOpen(true);
@@ -15,9 +17,18 @@ function Home() {
     };
 
     const handleContinue = () => {
-        setIsModalOpen(false);
-        navigate("/mapa-do-jogo");
+        if (name.trim() !== "") {
+            navigate("/mapa-do-jogo", { state: { playerName: name } });
+        } else {
+            alert("Por favor, insira seu nome.");
+        }
      };
+
+     const handleInputChange = (e) => {
+        setName(e.target.value);
+        console.log(e.target.value);
+    };
+    
 
     return (
         <section className="home-section">
@@ -67,11 +78,14 @@ function Home() {
                 </div>
 
                 <p>Digite seu nome</p>
-                <input type="text" placeholder="Ex: Matheus" className="input-name" />
+
+                <input type="text" placeholder="Ex: Matheus" className="input-name" onChange={handleInputChange}/>
+
                 <button onClick={handleContinue} className="next-btn">
                     <div></div>
                     <p>Continuar</p>
                 </button>
+
             </div>
             </div>
         )}
