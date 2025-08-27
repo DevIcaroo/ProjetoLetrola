@@ -21,6 +21,46 @@
     z-index: -1;
 }
 
+.greeting{
+    width: fit-content;
+    display: flex;
+    text-align: center;
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.greeting h1{
+    font-size: 1.7rem;
+    font-family: 'Bangers', cursive;
+    color: white;
+    width: 8rem;
+}
+
+.stars-count img{
+    width: 10rem;
+    
+}
+
+.stars-count{
+    width: 10rem;
+    height: 10rem;
+}
+
+.stars-count p{
+    width: 5rem;
+    font-size: 1.6rem;
+    font-family: 'Bangers', cursive;
+    font-weight: normal;
+    color: white;
+    position: absolute;
+    z-index: 3;
+    top: 42%;
+    left: 22%;
+}
+
 .levels-container{
     width: 100%;
     height: 100dvh;
