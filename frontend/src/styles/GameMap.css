@@ -68,6 +68,13 @@
     z-index: 1;
 }
 
+.levels-container button{
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
 .level{
     position: relative;
     text-align: center;
@@ -97,29 +104,29 @@
 }
 
 .level-2{
-    top: 35%;
-    left: 42%;
-    cursor: pointer;
-    filter: grayscale(100%);
-}
-
-.level-3{
-    bottom: 10%;
-    left: 22%;
-    cursor: pointer;
-    filter: grayscale(100%);
-}
-
-.level-4{
-    bottom: 55%;
+    top: 55%;
     left: 35%;
     cursor: pointer;
     filter: grayscale(100%);
 }
 
+.level-3{
+    top: 35%;
+    left: 8%;
+    cursor: pointer;
+    filter: grayscale(100%);
+}
+
+.level-4{
+    top: 10%;
+    left: 10%;
+    cursor: pointer;
+    filter: grayscale(100%);
+}
+
 .level-5{
-    bottom: 90%;
-    left: 54%;
+    bottom: 3%;
+    left: 25%;
     cursor: pointer;
     filter: grayscale(100%);
 }
