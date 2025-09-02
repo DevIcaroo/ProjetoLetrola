@@ -81,6 +81,12 @@
     width: fit-content;
 }
 
+.level-stars{
+    position: absolute;
+    top: 15%;
+    left: 30%;
+}
+
 .level p{
     font-size: 2rem;
     font-family: 'Bangers', cursive;
@@ -129,4 +135,32 @@
     left: 25%;
     cursor: pointer;
     filter: grayscale(100%);
+}
+
+.modal-overlay {
+  position: fixed; /* fixa na tela inteira, não depende do pai */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5); /* fundo escuro */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* garante que fica acima de tudo */
+}
+
+.modal-title{
+    left: 47%;
+}
+
+.modal-content p{
+    font-size: 1.5rem;
+    width: 8rem;
+    text-align: center;
+}
+
+
+.close-btn{
+    display: block;
 }
