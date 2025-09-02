@@ -24,6 +24,12 @@ function Fase1() {
           <img src="./trees-transparent.svg" alt="pinheiros" className="pines delay" />
         </div>
       </div>
+
+      <header>
+        <div className="timer">
+          
+        </div>
+      </header>
     </section>
   );
 }
