@@ -77,3 +77,9 @@
     transform: translateX(-50%);
   }
 }
+
+@media (max-width: 600px){
+  .trees-wrapper{
+    bottom: 24%;
+  }
+}
