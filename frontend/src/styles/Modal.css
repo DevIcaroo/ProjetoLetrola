@@ -80,3 +80,11 @@
         transform: scale(1);
     }
 }
+
+@media (max-width: 600px) {
+    .modal-title {
+        top: 36%;
+        left: 50%;
+        font-size: 1.7rem;
+    }
+}
