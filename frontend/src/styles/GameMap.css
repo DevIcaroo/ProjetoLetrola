@@ -86,7 +86,7 @@
 
 .level-stars{
     position: absolute;
-    top: 15%;
+    top: 10%;
     left: 30%;
 }
 
@@ -126,7 +126,7 @@
 }
 
 .level-4{
-    top: 15%;
+    top: 8%;
     right: 30%;
     cursor: pointer;
     filter: grayscale(100%);
@@ -182,6 +182,7 @@
 
     .level-4{
         left: 0%;
+        top: 15%;
     }
 
     .level-5{
