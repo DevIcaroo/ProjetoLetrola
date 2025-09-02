@@ -3,12 +3,20 @@
 Este é o front-end do projeto Letrola, um jogo sério voltado para a alfabetização de crianças.
 
 ## 🚀 Funcionalidades
-
+- **Mapa do Jogo:** Visualização interativa do progresso do jogador através das fases.
+- **Fases Progressivas:** Cinco fases com desafios de alfabetização, cada uma focada em diferentes habilidades de leitura e escrita.
+- **Interface Responsiva:** Layout adaptável para diferentes tamanhos de tela.
+- **Navegação entre Páginas:** Transição fluida entre tela inicial,mapa do jogo e fases.
+- **Estilização Personalizada:** Temas e elementos visuais voltados para o público infantil.
+- **Gerenciamento de Estado:** Controle do progresso do usuário e das respostas em tempo real.
+- **Carregamento de Imagens:** Utilização de imagens educativas para enriquecer a experiência.
 
 ## 🛠️ Tecnologias Utilizadas
-- **Frontend:** React, CSS
+- **React**
+- **CSS**
+- **JavaScript**
 
-## 📂 Estrutura do Projeto
+## 📂 Estrutura do frontend
 ```
 📦 frontend
 ├── 📂 node_modules
@@ -60,7 +68,7 @@ yarn start
 cd frontend
 npm run dev
 ```
-Acesse **http://localhost:3000** no navegador.
+Acesse **http://localhost:5173** no navegador.
 
 ## 📜 Padrões de Commit
 Seguindo o padrão [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
