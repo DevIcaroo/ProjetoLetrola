@@ -66,6 +66,9 @@
     height: 100dvh;
     position: relative;
     z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
 }
 
 .levels-container button{
@@ -88,51 +91,50 @@
 }
 
 .level p{
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-family: 'Bangers', cursive;
     font-weight: bold;
     color: white;
     position: relative;
-    top: 3.5rem;
+    top: 3.1rem;
     z-index: 2;
 }
 
-
 .level img{
-    width: 100px;
-    height: 100px;  
+    width: -webkit-fill-available;
+    height: 90px;  
 }
 
 .level-1{
-    top: 79%;
-    left: 56%;
+    top: 80%;
+    left: 55%;
     cursor: pointer;
 }
 
 .level-2{
     top: 55%;
-    left: 35%;
+    left: 20%;
     cursor: pointer;
     filter: grayscale(100%);
 }
 
 .level-3{
     top: 35%;
-    left: 8%;
+    right: 25%;
     cursor: pointer;
     filter: grayscale(100%);
 }
 
 .level-4{
-    top: 10%;
-    left: 10%;
+    top: 15%;
+    right: 30%;
     cursor: pointer;
     filter: grayscale(100%);
 }
 
 .level-5{
-    bottom: 3%;
-    left: 25%;
+    bottom: 0%;
+    right: 36%;
     cursor: pointer;
     filter: grayscale(100%);
 }
@@ -156,7 +158,33 @@
     text-align: center;
 }
 
-
 .close-btn{
     display: block;
+}
+
+@media (max-width: 600px){
+    .level img{
+        width: -webkit-fill-available;
+    }
+
+    .level-1{
+        left: 60%;
+    }
+
+    .level-2{
+        left: 10%;
+    }
+
+    .level-3{
+        top: 23%;
+        right: 35%;
+    }
+
+    .level-4{
+        left: 0%;
+    }
+
+    .level-5{
+        right: 25%;
+    }
 }
