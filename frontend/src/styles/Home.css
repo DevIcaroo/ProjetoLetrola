@@ -173,8 +173,18 @@ button:hover{
     bottom: -15%;
 }
 
+.modal-title{
+    position: absolute;
+    top: 60%;
+    left: 60%;
+    transform: translate(-50%, -50%);
+}
+
 .close-btn{
     display: none;
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
 }
 
 .next-btn{
