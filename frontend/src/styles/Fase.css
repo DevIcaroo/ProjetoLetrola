@@ -1,0 +1,79 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.level-section{
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.level-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.level-1-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  bottom: 0;
+  z-index: 0;
+}
+
+/* Animação das nuvens */
+.clouds-wrapper {
+  position: absolute;
+  top: 10%;
+  left: 110%;
+  width: 500vw;
+  display: flex;
+  gap: 50rem;
+  animation: move-left 10s linear infinite;
+}
+
+.clouds {
+  width: 500px;
+  height: auto;
+}
+
+.clouds.delay {
+  animation-delay: 10s;
+}
+
+/* Animação das árvores */
+.trees-wrapper {
+  position: absolute;
+  bottom: 13%;
+  left: 110%;
+  width: 500vw;
+  display: flex;
+  gap: 50rem;
+  animation: move-left 10s linear infinite;
+}
+
+.pines {
+  width: 380px;
+  height: 280px;
+}
+
+.pines.delay {
+  animation-delay: 15s;
+}
+
+/* Keyframes para mover da direita para esquerda */
+@keyframes move-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
