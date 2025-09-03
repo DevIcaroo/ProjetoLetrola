@@ -10,8 +10,9 @@ function GameMap() {
   const navigate = useNavigate();
   const levels = [1, 2, 3, 4, 5];
   const [starsPerLevel, setStarsPerLevel] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false); // 🔹 controla modal
-  const [modalMessage, setModalMessage] = useState("");   // 🔹 mensagem do backend
+  const [isModalOpen, setIsModalOpen] = useState(false); // controla modal
+  const [modalMessage, setModalMessage] = useState("");   // mensagem do backend
+  const [isConfigOpen, setIsConfigOpen] = useState(false); // controla modal de configurações
 
   const buscarEstrelas = async () => {
     const newStars = {};
@@ -72,6 +73,12 @@ function GameMap() {
           </div>
         </div>
 
+         {/* Botão de Configurações */}
+        <button className="settings-btn-right" onClick={() => setIsConfigOpen(true)}>
+          <div></div>
+          <img src="/Settings.svg" alt="Configurações" />
+        </button>
+
         <div className="levels-container">
           {levels.map((level) => (
             <button
@@ -90,13 +97,27 @@ function GameMap() {
         </div>
       </div>
 
-      {/* 🔹 Modal para mensagens do backend */}
+      {/* Modal para mensagens do backend (aviso de bloqueio) */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Aviso"
       >
         <p>{modalMessage}</p>
+      </Modal>
+
+       {/* Modal de Configurações */}
+      <Modal
+        isOpen={isConfigOpen}
+        title="Configurações"
+        variant="config"
+      >
+        <div className="btn-grid">
+          <button className="btn music-btn"> <div></div> música</button>
+          <button className="btn effect-btn"> <div></div> efeitos</button>
+          <button className="btn help-btn"> <div></div> ajuda</button>
+          <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}> <div></div> fechar</button>
+        </div>
       </Modal>
     </section>
   );
