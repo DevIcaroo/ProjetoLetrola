@@ -5,24 +5,32 @@ import Modal from "../components/Modal.jsx";
 
 function Home() {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [name, setName] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);       // Modal do nome
+  const [isConfigOpen, setIsConfigOpen] = useState(false);     // Modal de configurações
+  const [id_jogador, setId_jogador] = useState("");            // ✅ nome do jogador
+  const [showError, setShowError] = useState(false);
 
   const handleStart = () => {
     setIsModalOpen(true);
   };
 
   const handleContinue = () => {
-    if (name.trim() !== "") {
-      navigate("/mapa-do-jogo", { state: { id_jogador: name } });
+    if (id_jogador.trim() === "") {
+      setShowError(true); // exibe mensagem de erro
     } else {
-      alert("Por favor, insira seu nome.");
+      setShowError(false); // limpa erro
+      setIsModalOpen(false);
+
+      // Exemplo: navegar para o mapa
+      navigate("/mapa-do-jogo", { state: { id_jogador } });
     }
   };
 
   return (
     <section className="home-section">
-      <div className={`home-container ${isModalOpen ? "blur" : ""}`}>
+      <div
+        className={`home-container ${isModalOpen || isConfigOpen ? "blur" : ""}`}
+      >
         <img src="/background forest.svg" alt="plano-de-fundo" className="home-bg" />
         <img src="/logo.svg" alt="logo-letrola" className="logo" />
         <img src="./monkey.svg" alt="macaco" className="monkey" />
@@ -36,27 +44,54 @@ function Home() {
           <img src="/red cube.svg" alt="" className="red" />
         </div>
 
-        <button className="settings-btn">
+        {/* Botão de Configurações */}
+        <button className="settings-btn" onClick={() => setIsConfigOpen(true)}>
+          <div></div>
           <img src="/Settings.svg" alt="Configurações" />
         </button>
 
         <button className="start-btn" onClick={handleStart}>
+          <div></div>
           Começar
         </button>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Quem é você?">
+      {/* Modal para nome do jogador */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Quem é você?"
+        variant="default"
+      >
         <p>Digite seu nome</p>
         <input
           type="text"
+          value={id_jogador} // ✅ usando id_jogador
           placeholder="Ex: Matheus"
           className="input-name"
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setId_jogador(e.target.value)} // ✅ atualiza id_jogador
         />
 
         <button onClick={handleContinue} className="next-btn">
+          <div></div>
           Continuar
         </button>
+
+        {showError && <p className="modal-message">Por favor, digite seu nome</p>}
+      </Modal>
+
+      {/* Modal de Configurações */}
+      <Modal
+        isOpen={isConfigOpen}
+        title="Configurações"
+        variant="config"
+      >
+        <div className="btn-grid">
+          <button className="btn music-btn"> <div></div> música</button>
+          <button className="btn effect-btn"> <div></div> efeitos</button>
+          <button className="btn help-btn"> <div></div> ajuda</button>
+          <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}> <div></div> fechar</button>
+        </div>
       </Modal>
     </section>
   );
