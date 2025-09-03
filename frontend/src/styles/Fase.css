@@ -28,6 +28,125 @@
   z-index: 0;
 }
 
+header{
+  position: absolute;
+  z-index: 2;
+  bottom: 75%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 1rem;
+  width: 100vw;
+}
+
+/*botâo de configurações de fase*/
+.level-settings-btn{
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 10px;
+  background-color: #FABA00;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  border-bottom: #9F5704 5px solid;
+  border-left: #9F5704 5px solid;
+}
+
+.level-settings-btn img{
+    width: 75%;
+    z-index: 1;
+    position: relative;
+}
+
+/*timer*/
+.timer{
+  display: flex;
+  justify-content: flex-end;
+}
+
+.timer-btn{
+  position: absolute;
+    z-index: 2;
+    bottom: 7%;
+    left: 35%;
+    padding: 12px 80px;
+    border-radius: 30px;
+    border: none;
+    background-color: #FF2526;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    border-bottom: #DA1213 8px solid;
+    border-left: #DA1213 8px solid;
+}
+
+.seconds{
+    position: absolute;
+    top: 35%;
+    right: 7%;
+    font-size: 2rem;
+    color: #FFFFFF;
+    font-family: "Bangers", system-ui;
+    padding: 0.2rem;
+}
+
+/*--------------botões modal config geral---------------- */
+.btn-level-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 250px;
+    justify-items: center;
+    padding: 0.5rem;
+}
+
+.btn:nth-child(3){
+  grid-column: auto;
+}
+
+.btn:nth-child(4),.btn:nth-child(5) {
+    grid-column: 1 / 4;
+}
+
+.map-btn, .stop-btn, .retry-btn{
+    position: relative;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background-color: #B3CD45;
+    color: #FFFFFF;
+    font-size: 1.3rem;
+    cursor: pointer;
+    border-bottom: #7BAF1B 6px solid;
+}
+
+.map-btn div, .stop-btn div, .retry-btn div{
+    position: absolute;
+    width: 90%;
+    height: 20px;
+    border-radius: 5px;
+    background-color: #ffffff48;
+    left: 5%;
+    bottom: 45%;
+}
+
+.map-btn{
+  background-color: #51D3CC ;
+  border-bottom: #2CB3B7 6px solid;
+}
+
+.stop-btn{
+  background-color: #FF2526 ;
+  border-bottom: #DA1213 6px solid;
+}
+
+.retry-btn{
+  background-color: #FE4590 ;
+  border-bottom: #CA3F78 6px solid;
+}
+
+
 /* Animação das nuvens */
 .clouds-wrapper {
   position: absolute;
