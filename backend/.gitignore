@@ -1,0 +1,15 @@
+# Node modules
+node_modules/
+
+# Arquivos de log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de banco de dados
+*.db
+*.sqlite
+*.sqlite3
+
+# Variáveis de ambiente
+.env
