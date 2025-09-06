@@ -11,19 +11,30 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
     feedback: "./modal-green.svg", // feedback de fase
   };
 
+  // Define estilos específicos para o modal de feedback
+  const imgStyle =
+    variant === "feedback"
+      ? { width: "40rem", height: "40rem" }
+      : {};
+
+  const titleStyle = variant === "feedback"
+  ? { top: "22%"}
+  : {};
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <img
         src={backgrounds[variant]}
         alt="fundo-modal"
         className="modal-bg"
+        style={imgStyle}
       />
 
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        {title && <h2 className="modal-title">{title}</h2>}
+        {title && <h2 className="modal-title" style={titleStyle}>{title}</h2>}
 
         <div className="modal-body">{children}</div>
 
