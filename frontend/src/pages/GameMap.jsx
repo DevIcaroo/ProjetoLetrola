@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
 import "../styles/GameMap.css";
 import Modal from "../components/Modal";
+import ScoreDisplay from "../components/ScoreDisplay";
+import { buscarFaseAtual, buscarEstrelas } from "../services/apiProgresso";
+import { verificarAcessoFase } from "../services/apiFases"; // 🔹 1. IMPORTE A API DE VERIFICAÇÃO
 
 function GameMap() {
   const location = useLocation();
@@ -10,52 +12,51 @@ function GameMap() {
   const navigate = useNavigate();
   const levels = [1, 2, 3, 4, 5];
   const [starsPerLevel, setStarsPerLevel] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false); // controla modal
-  const [modalMessage, setModalMessage] = useState("");   // mensagem do backend
-  const [isConfigOpen, setIsConfigOpen] = useState(false); // controla modal de configurações
-
-  const buscarEstrelas = async () => {
-    const newStars = {};
-    for (const level of levels) {
-      try {
-        const res = await axios.get(`http://localhost:3000/estrelas/${id_jogador}/${level}`);
-        newStars[level] = res.data.estrelas || 0;
-      } catch (err) {
-        newStars[level] = 0;
-        console.error(`Erro ao buscar estrelas da fase ${level}:`, err);
-      }
-    }
-    setStarsPerLevel(newStars);
-  };
-
-  const verificarFase = async (id_jogador, level) => {
-    try {
-      const res = await axios.get(`http://localhost:3000/fase/${id_jogador}/${level}`);
-      return res.data;
-    } catch (err) {
-      if (err.response?.status === 403) {
-        setModalMessage(err.response.data.mensagem); // 🔹 abre modal com msg
-        setIsModalOpen(true);
-      } else {
-        console.error("Erro ao verificar fase:", err);
-      }
-      return null;
-    }
-  };
-
-  const handleLevelClick = async (level) => {
-    const resultado = await verificarFase(id_jogador, level);
-    if (resultado?.permitido) {
-      navigate(`/fase-${level}`, { state: { id_jogador, levelData: resultado.fase } });
-    }
-  };
+  const [faseMaisAlta, setFaseMaisAlta] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
 
   useEffect(() => {
     if (!id_jogador) {
       navigate("/");
+      return;
     }
-    buscarEstrelas();
+
+    const buscarDadosDoJogador = async () => {
+      const faseAtual = await buscarFaseAtual(id_jogador);
+      setFaseMaisAlta(faseAtual);
+
+      const newStars = {};
+      for (const level of levels) {
+        newStars[level] = await buscarEstrelas(id_jogador, level);
+      }
+      setStarsPerLevel(newStars);
+    };
+
+    buscarDadosDoJogador();
   }, [id_jogador, navigate]);
+
+  const handleLevelClick = async (level) => {
+    // 🔹 2. ADICIONA A CHAMADA DE VERIFICAÇÃO AO BACKEND
+    // A trava visual (isLocked) já impede a maioria dos cliques,
+    // mas esta chamada garante a segurança e pega a mensagem do backend.
+    try {
+      const resultado = await verificarAcessoFase(id_jogador, level);
+      
+      if (resultado?.permitido) {
+        navigate(`/fase-${level}`, { state: { id_jogador } });
+      } else {
+        // Se 'permitido' for false, usa a mensagem da API
+        setModalMessage(resultado.mensagem || "Você ainda não pode acessar esta fase.");
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+        console.error("Erro ao verificar acesso à fase:", error);
+        setModalMessage("Não foi possível verificar o acesso à fase. Tente novamente.");
+        setIsModalOpen(true);
+    }
+  };
 
   const totalStars = Object.values(starsPerLevel).reduce((a, b) => a + b, 0);
   const maxStars = levels.length * 3;
@@ -73,42 +74,43 @@ function GameMap() {
           </div>
         </div>
 
-         {/* Botão de Configurações */}
         <button className="settings-btn-right" onClick={() => setIsConfigOpen(true)}>
           <div></div>
           <img src="/Settings.svg" alt="Configurações" />
         </button>
 
         <div className="levels-container">
-          {levels.map((level) => (
-            <button
-              key={level}
-              onClick={() => handleLevelClick(level)}
-              className={`level level-${level}`}
-            >
-              <div className="level-stars">
-                {"★".repeat(starsPerLevel[level] || 0)}
-                {"☆".repeat(3 - (starsPerLevel[level] || 0))}
-              </div>
-              <p>{level}</p>
-              <img src="/level-button.svg" alt={`Botão fase ${level}`} />
-            </button>
-          ))}
+          {levels.map((level) => {
+            const isLocked = level > faseMaisAlta;
+            return (
+              <button
+                key={level}
+                onClick={() => handleLevelClick(level)}
+                className={`level level-${level} ${isLocked ? 'locked' : ''}`}
+              >
+                <ScoreDisplay
+                  starsEarned={starsPerLevel[level]}
+                  variant="map"
+                />
+                <p>{level}</p>
+                <img src="/level-button.svg" alt={`Botão fase ${level}`} />
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Modal para mensagens do backend (aviso de bloqueio) */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Aviso"
+        title="Nível Bloqueado"
       >
         <p>{modalMessage}</p>
       </Modal>
 
-       {/* Modal de Configurações */}
       <Modal
         isOpen={isConfigOpen}
+        onClose={() => setIsConfigOpen(false)}
         title="Configurações"
         variant="config"
       >
@@ -116,7 +118,6 @@ function GameMap() {
           <button className="btn music-btn"> <div></div> música</button>
           <button className="btn effect-btn"> <div></div> efeitos</button>
           <button className="btn help-btn"> <div></div> ajuda</button>
-          <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}> <div></div> fechar</button>
         </div>
       </Modal>
     </section>
