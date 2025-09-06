@@ -116,10 +116,20 @@
     width: fit-content;
 }
 
-.level-stars{
+.score-display-container.map {
     position: absolute;
-    top: 10%;
-    left: 30%;
+    bottom: 40%;
+    left: 40%;
+    transform: translateX(-50%);
+    width: auto;
+    gap: 2px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.score-display-container.map .star-icon {
+  width: 20px; /* Tamanho menor para o mapa */
+  height: 20px;
 }
 
 .level p{
@@ -147,27 +157,27 @@
     top: 55%;
     left: 20%;
     cursor: pointer;
-    filter: grayscale(100%);
 }
 
 .level-3{
     top: 35%;
     right: 25%;
     cursor: pointer;
-    filter: grayscale(100%);
 }
 
 .level-4{
     top: 8%;
     right: 30%;
     cursor: pointer;
-    filter: grayscale(100%);
 }
 
 .level-5{
     bottom: 0%;
     right: 36%;
     cursor: pointer;
+}
+
+.locked{
     filter: grayscale(100%);
 }
 
