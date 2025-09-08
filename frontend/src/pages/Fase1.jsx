@@ -83,13 +83,17 @@ function Fase1() {
   // --- INICIALIZAÇÃO ---
   const inicializarFase = useCallback(async () => {
     console.log(`Buscando itens para a fase ${fase_id}...`);
-    const itensDaApi = await buscarItensPorFase(fase_id);
+    const todosOsItensDaApi = await buscarItensPorFase(fase_id);
 
-    if (itensDaApi.length === 0) {
+    if (todosOsItensDaApi.length === 0) {
         console.error(`Nenhum item encontrado para a fase ${fase_id}. Verifique o backend.`);
         setEstadoJogo("erro");
         return;
     }
+
+    // filtra a lista para manter apenas as frutas desejadas
+    const frutasDesejadas = ['UVA', 'MAÇÃ', 'PERA'];
+    const itensFiltrados = todosOsItensDaApi.filter(item => frutasDesejadas.includes(item.resposta.toUpperCase()));
 
     setTempoInicioFase(Date.now());
     setDicasTotaisUsadas(0);
@@ -98,9 +102,9 @@ function Fase1() {
     setColisaoAtiva(false);
     
     const screenWidth = window.innerWidth;
-    const totalWorldWidth = itensDaApi.length * 400;
+    const totalWorldWidth = itensFiltrados.length * 400;
 
-    setFrutas(itensDaApi.map((item, index) => ({
+    setFrutas(itensFiltrados.map((item, index) => ({
         id: item.id,
         nome: item.resposta.toUpperCase(),
         imgSrc: item.imagem_url,
