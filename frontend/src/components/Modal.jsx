@@ -18,9 +18,9 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
       ? { width: "40rem", height: "40rem" }
       : {};
 
-  const titleStyle = variant === "feedback"
+  /*const titleStyle = variant === "feedback"
   ? { top: "22%"}
-  : {};
+  : {};*/
 
   const animationStyle = variant === "puzzle"
   ? { animation: "rotate 20s linear infinite"}
@@ -41,7 +41,7 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
       >
-        {title && <h2 className="modal-title" style={titleStyle}>{title}</h2>}
+        {title && <h2 className="modal-title">{title}</h2>}
 
         <div className="modal-body">{children}</div>
 
