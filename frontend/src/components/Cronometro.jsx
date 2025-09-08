@@ -4,13 +4,17 @@ import React, { useEffect, useRef, useCallback } from 'react';
 const TEMPO_1_MIN_MS = 60 * 1000;
 const TEMPO_3_MIN_MS = 180 * 1000;
 
+const TEMPO_DICA_1_MS = 15 * 1000; // 15 segundos
+const TEMPO_DICA_2_MS = 30 * 1000; // 30 segundos
+
 const Cronometro = ({
   tempoInicioFase,
   limiteTempoFase,
   itemAtual,
-  onDicaLiberada, // Substitui o 'onDicaCallback'
+  onDicaLiberada,
   onFaseTermina,
   onTempoTick,
+  onItemTempoTick,
 }) => {
   const requestRef = useRef();
   const dicasLiberadasRef = useRef(0);
@@ -28,23 +32,27 @@ const Cronometro = ({
     if (itemAtual && itemAtual.timestampInicio) {
       const tempoDecorridoItem = Date.now() - itemAtual.timestampInicio;
 
-      // Lógica para liberar as dicas
-      if (tempoDecorridoItem >= TEMPO_1_MIN_MS && dicasLiberadasRef.current === 0) {
-        dicasLiberadasRef.current = 1;
-        // O callback informa a fase para controle de estado
-        if (itemAtual.dica1) {
-            onDicaLiberada(itemAtual.dica1, 1);
-        }
-      } else if (tempoDecorridoItem >= TEMPO_3_MIN_MS && dicasLiberadasRef.current === 1) {
-        dicasLiberadasRef.current = 2;
-        if (itemAtual.dica2) {
-            onDicaLiberada(itemAtual.dica2, 2);
+      // Envia o tempo do item de volta para a UI
+      if (onItemTempoTick) {
+        onItemTempoTick(tempoDecorridoItem);
+      }
+
+       //Lógica de dicas para 15s e 30s
+        if (tempoDecorridoItem >= TEMPO_DICA_1_MS && dicasLiberadasRef.current === 0) {
+          dicasLiberadasRef.current = 1;
+          if (itemAtual.dica1) {
+              onDicaLiberada(1, itemAtual.id); // Notifica a Fase que a Dica 1 está pronta
+          }
+        } else if (tempoDecorridoItem >= TEMPO_DICA_2_MS && dicasLiberadasRef.current === 1) {
+          dicasLiberadasRef.current = 2;
+          if (itemAtual.dica2) {
+              onDicaLiberada(2, itemAtual.id); // Notifica a Fase que a Dica 2 está pronta
+          }
         }
       }
-    }
 
-    requestRef.current = requestAnimationFrame(gameLoop);
-  }, [tempoInicioFase, limiteTempoFase, itemAtual, onDicaLiberada, onFaseTermina, onTempoTick]);
+      requestRef.current = requestAnimationFrame(gameLoop);
+  }, [tempoInicioFase, limiteTempoFase, itemAtual, onDicaLiberada, onFaseTermina, onTempoTick, onItemTempoTick]);
 
   useEffect(() => {
     // Quando o item muda,o contador de dicas liberadas reinicia.
