@@ -14,19 +14,6 @@ const VELOCIDADE_PERSONAGEM = 8;
 const ALTURA_CHAO = 87; // % da tela a partir do topo
 const VELOCIDADE_FRUTAS = 2; // Velocidade com que as frutas se movem
 
-/*const FRUTAS_DA_FASE = [
-  { nome: 'BANANA', imgSrc: '/banana.svg' },
-  { nome: 'ABACATE', imgSrc: '/abacate.svg' },
-  { nome: 'LARANJA', imgSrc: '/laranja.svg' },
-  { nome: 'MAMAO', imgSrc: '/mamao.svg' },
-  { nome: 'MANGA', imgSrc: '/manga.svg' },
-  { nome: 'ABACAXI', imgSrc: '/abacaxi.svg' },
-  { nome: 'UVA', imgSrc: '/uva.svg' },
-  { nome: 'MELANCIA', imgSrc: '/melancia.svg' },
-  { nome: 'LIMAO', imgSrc: '/limao.svg' },
-  { nome: 'COCO', imgSrc: '/coco.svg' },
-];*/
-
 // Constantes de tempo (em segundos)
 const TEMPO_3_ESTRELAS = 60;
 const TEMPO_2_ESTRELAS = 180;
@@ -44,12 +31,13 @@ const formatTime = (time, unit = 'ms') => {
 const gerarLetrasPuzzle = (palavra) => {
     const letrasPalavra = palavra.split('');
     const alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let letrasGrid = [...letrasPalavra];
+    let letrasGrid = [];
+    letrasPalavra.forEach((letra, index) => {
+        letrasGrid.push({ id: `palavra-${index}`, letra: letra });
+    });
     while (letrasGrid.length < 8) {
         const letraAleatoria = alfabeto[Math.floor(Math.random() * alfabeto.length)];
-        if (!letrasGrid.includes(letraAleatoria)) {
-            letrasGrid.push(letraAleatoria);
-        }
+        letrasGrid.push({ id: `aleatoria-${letrasGrid.length}`, letra: letraAleatoria });
     }
     return letrasGrid.sort(() => Math.random() - 0.5);
 };
@@ -74,9 +62,7 @@ function Fase1() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [tempoExibido, setTempoExibido] = useState("00:00");
   const [resultadoFinal, setResultadoFinal] = useState({
-    title: "", estrelas: 0, tempoConclusao: 0, proximaMeta: "",
-    aprendizado: "Você aprendeu a soletrar os nomes das frutas!"
-  });
+    title: "", estrelas: 0, tempoConclusao: 0, proximaMeta: "", aprendizado: "Você aprendeu a soletrar os nomes das frutas!"});
   const [personagemPos, setPersonagemPos] = useState({ x: 100, y: 0, vy: 0 });
   const [teclasPressionadas, setTeclasPressionadas] = useState({});
   const [frutas, setFrutas] = useState([]);
@@ -84,19 +70,24 @@ function Fase1() {
   const [puzzleAtual, setPuzzleAtual] = useState({
     fruta: null, letrasGrid: [], slotsResposta: [],
   });
+  const [puzzleError, setPuzzleError] = useState(false);
   const [colisaoAtiva, setColisaoAtiva] = useState(false);
+  const [itemEmJogo, setItemEmJogo] = useState(null);
+  const [tempoDoItemExibido, setTempoDoItemExibido] = useState("00:00");
+  const [dicasDisponiveis, setDicasDisponiveis] = useState([]);
+  const [dicaExibida, setDicaExibida] = useState("Colete as frutas para aprender a soletrar!");
 
   const gameLoopRef = useRef();
   const animationFrameRef = useRef(0);
 
-  // --- INICIALIZAÇÃO (BUSCAR DADOS NO BANCO) ---
+  // --- INICIALIZAÇÃO ---
   const inicializarFase = useCallback(async () => {
     console.log(`Buscando itens para a fase ${fase_id}...`);
     const itensDaApi = await buscarItensPorFase(fase_id);
 
     if (itensDaApi.length === 0) {
         console.error(`Nenhum item encontrado para a fase ${fase_id}. Verifique o backend.`);
-        setEstadoJogo("erro"); // Um novo estado para mostrar erro ao jogador
+        setEstadoJogo("erro");
         return;
     }
 
@@ -109,22 +100,19 @@ function Fase1() {
     const screenWidth = window.innerWidth;
     const totalWorldWidth = itensDaApi.length * 400;
 
-    // o jogo é montado com as dados do banco
-    setFrutas(itensDaApi.map((item, index) => {
-        const yBase = window.innerHeight * (ALTURA_CHAO / 100) - 150;
-        const yPos = yBase - (index % 2 === 0 ? 0 : 80);
-        return {
-            id: item.id, // Usa o ID do banco
-            nome: item.resposta, // Usa o campo 'resposta'
-            imgSrc: item.imagem_url, // Usa o campo 'imagem_url'
-            x: screenWidth + 200 + (index * 400),
-            y: yPos,
-            initialY: yPos,
-            pega: false,
-            totalWorldWidth: totalWorldWidth,
-        }
-    }));
-    setEstadoJogo("jogando"); // Inicia o jogo após carregar tudo
+    setFrutas(itensDaApi.map((item, index) => ({
+        id: item.id,
+        nome: item.resposta.toUpperCase(),
+        imgSrc: item.imagem_url,
+        dica1: item.dica1,
+        dica2: item.dica2,
+        x: screenWidth + 200 + (index * 400),
+        y: (window.innerHeight * (ALTURA_CHAO / 100) - 150) - (index % 2 === 0 ? 0 : 80),
+        initialY: (window.innerHeight * (ALTURA_CHAO / 100) - 150) - (index % 2 === 0 ? 0 : 80),
+        pega: false,
+        totalWorldWidth: totalWorldWidth,
+    })));
+    setEstadoJogo("jogando");
     setIsConfigOpen(false);
     setIsFeedbackOpen(false);
   }, [fase_id]);
@@ -151,6 +139,9 @@ function Fase1() {
 
   // --- LÓGICA DO PUZZLE E JOGO ---
   const handlePegarFruta = useCallback((fruta) => {
+    setItemEmJogo({ ...fruta, timestampInicio: Date.now() });
+    setDicaExibida("Arraste as letras para formar a palavra!");
+    setDicasDisponiveis([]);
     setPuzzleAtual({
       fruta: fruta,
       letrasGrid: gerarLetrasPuzzle(fruta.nome),
@@ -167,7 +158,11 @@ function Fase1() {
     );
     setIsPuzzleOpen(false);
     setColisaoAtiva(false);
+    setItemEmJogo(null);
+    setDicaExibida("Parabéns! Continue coletando as outras frutas.");
   };
+
+
   
   useEffect(() => {
       if (frutas.length === 0 || estadoJogo !== "jogando") return;
@@ -183,7 +178,6 @@ function Fase1() {
       gameLoopRef.current = requestAnimationFrame(gameLoop);
       return;
     }
-
     setPersonagemPos(prevPos => {
       let { x, y, vy } = prevPos;
       if (teclasPressionadas['ArrowLeft']) x -= VELOCIDADE_PERSONAGEM;
@@ -197,7 +191,6 @@ function Fase1() {
       if (x > window.innerWidth - 50) x = window.innerWidth - 50;
       return { x, y, vy };
     });
-
     setFrutas(frutasAtuais => frutasAtuais.map(fruta => {
       if (!fruta.pega) {
           fruta.x -= VELOCIDADE_FRUTAS;
@@ -208,7 +201,6 @@ function Fase1() {
       }
       return fruta;
     }));
-    
     for (const fruta of frutas) {
       if (!fruta.pega && !colisaoAtiva) {
         const pRect = { x: personagemPos.x, y: personagemPos.y, width: 50, height: 50 };
@@ -221,31 +213,78 @@ function Fase1() {
         }
       }
     }
-    
     animationFrameRef.current++;
     gameLoopRef.current = requestAnimationFrame(gameLoop);
-  }, 
-  [estadoJogo, isPuzzleOpen, teclasPressionadas, personagemPos, frutas, handlePegarFruta, colisaoAtiva]
-);
+  }, [estadoJogo, isPuzzleOpen, teclasPressionadas, personagemPos, frutas, handlePegarFruta, colisaoAtiva]);
 
   useEffect(() => {
     gameLoopRef.current = requestAnimationFrame(gameLoop);
     return () => cancelAnimationFrame(gameLoopRef.current);
   }, [gameLoop]);
 
+  const handleDragStart = (e, letraObj, origem, index) => {
+    e.dataTransfer.setData('letraData', JSON.stringify({ ...letraObj, origem, index }));
+  };
+
   const handleDropLetra = (e, indexSlot) => {
     e.preventDefault();
-    const letraArrastada = JSON.parse(e.dataTransfer.getData('letra'));
+    const letraArrastada = JSON.parse(e.dataTransfer.getData('letraData'));
+    
     setPuzzleAtual(prev => {
-      const novosSlots = [...prev.slotsResposta];
-      if (letraArrastada.origem === 'slot') {
-          novosSlots[letraArrastada.index] = null;
-      }
-      novosSlots[indexSlot] = letraArrastada.letra;
-      if (!novosSlots.includes(null) && novosSlots.join('') === prev.fruta.nome) {
-        handleAcertoPuzzle();
-      }
-      return { ...prev, slotsResposta: novosSlots };
+        const novasLetrasGrid = [...prev.letrasGrid];
+        const novosSlots = [...prev.slotsResposta];
+        const letraExistenteNoSlot = novosSlots[indexSlot];
+        novosSlots[indexSlot] = { id: letraArrastada.id, letra: letraArrastada.letra };
+
+        if (letraArrastada.origem === 'grid') {
+            const indexNaGrid = novasLetrasGrid.findIndex(l => l && l.id === letraArrastada.id);
+            if (indexNaGrid > -1) novasLetrasGrid[indexNaGrid] = null;
+        } else {
+            novosSlots[letraArrastada.index] = null;
+        }
+
+        if (letraExistenteNoSlot) {
+            const indexOriginal = novasLetrasGrid.findIndex(l => l && l.id === letraExistenteNoSlot.id);
+            if(indexOriginal > -1) {
+                 novasLetrasGrid[indexOriginal] = letraExistenteNoSlot;
+            } else {
+                const primeiroVazio = novasLetrasGrid.findIndex(l => l === null);
+                if(primeiroVazio > -1) novasLetrasGrid[primeiroVazio] = letraExistenteNoSlot;
+            }
+        }
+
+        // LÓGICA DE VERIFICAÇÃO DE ERRO E ACERTO
+        const todosPreenchidos = novosSlots.every(slot => slot !== null);
+        if (todosPreenchidos) {
+            const palavraFormada = novosSlots.map(l => l.letra).join('');
+            if (palavraFormada === prev.fruta.nome) {
+                // Palavra correta
+                setTimeout(() => handleAcertoPuzzle(), 200);
+            } else {
+                // Palavra incorreta: ativa o estado de erro
+                setPuzzleError(true);
+                // Desativa o estado de erro após a animação para que possa ser ativado novamente
+                setTimeout(() => setPuzzleError(false), 500); 
+            }
+        }
+
+        return { ...prev, letrasGrid: novasLetrasGrid, slotsResposta: novosSlots };
+    });
+};
+
+  const handleDropNoGrid = (e) => {
+    e.preventDefault();
+    const letraArrastada = JSON.parse(e.dataTransfer.getData('letraData'));
+    if (letraArrastada.origem !== 'slot') return;
+    setPuzzleAtual(prev => {
+        const novasLetrasGrid = [...prev.letrasGrid];
+        const novosSlots = [...prev.slotsResposta];
+        const indexOriginal = novasLetrasGrid.findIndex(l => l && l.id === letraArrastada.id);
+        if (indexOriginal > -1) {
+            novasLetrasGrid[indexOriginal] = { id: letraArrastada.id, letra: letraArrastada.letra };
+            novosSlots[letraArrastada.index] = null;
+        }
+        return { ...prev, letrasGrid: novasLetrasGrid, slotsResposta: novosSlots };
     });
   };
 
@@ -253,6 +292,23 @@ function Fase1() {
   const handleTempoTick = (tempoMs) => {
     setTempoExibido(formatTime(tempoMs, 'ms'));
     setTempoDecorridoParaScore(tempoMs);
+  };
+
+  const handleItemTempoTick = (tempoMs) => {
+    setTempoDoItemExibido(formatTime(tempoMs, 'ms'));
+  };
+
+  const handleDicaLiberada = (nivelDica, itemId) => {
+    const item = itemEmJogo;
+    if (!item || item.id !== itemId) return;
+
+    // Seleciona a dica correta com base no nível
+    const dicaTexto = nivelDica === 1 ? item.dica1 : item.dica2;
+
+    if (dicaTexto) {
+      setDicaExibida(dicaTexto); // Atualiza diretamente o parágrafo da dica
+      setDicasTotaisUsadas(prev => prev + 1); // Registra que uma dica foi usada
+    }
   };
 
   const handleConcluirFase = useCallback(() => {
@@ -289,13 +345,8 @@ function Fase1() {
   const handleAvancar = () => navigate(`/fase-${proxima_fase_id}`, { state: { id_jogador } });
   const handleVoltarAoMapa = () => navigate("/mapa-do-jogo", { state: { id_jogador } });
 
-   if (estadoJogo === "carregando") {
-      return <div>Carregando fase...</div>;
-  }
-  
-  if (estadoJogo === "erro") {
-      return <div>Ocorreu um erro ao carregar a fase. Tente voltar ao mapa.</div>;
-  }
+  if (estadoJogo === "carregando") { return <div style={{color: "white"}}>Carregando fase...</div>; }
+  if (estadoJogo === "erro") { return <div style={{color: "white"}}>Ocorreu um erro ao carregar a fase. Tente voltar ao mapa.</div>; }
 
   return (
     <section className="level-section">
@@ -305,46 +356,74 @@ function Fase1() {
           limiteTempoFase={TEMPO_1_ESTRELA * 1000}
           onTempoTick={handleTempoTick}
           onFaseTermina={(resultado) => handleFaseTermina({ ...resultado, motivo: 'tempo_esgotado' })}
-          itemAtual={null}
-          onDicaLiberada={() => setDicasTotaisUsadas(d => d + 1)}
+          itemAtual={itemEmJogo}
+          onDicaLiberada={handleDicaLiberada}
+          onItemTempoTick={handleItemTempoTick}
         />
       )}
       <div className="level-container">
+
         <img src="./level-1-background.svg" alt="fundo-de-floresta" className="level-1-bg" />
+
         <div className="clouds-wrapper"><img src="./clouds.svg" alt="nuvens" className="clouds" /><img src="./clouds.svg" alt="nuvens" className="clouds delay" /></div>
+
         <div className="trees-wrapper"><img src="./trees-transparent.svg" alt="pinheiros" className="pines" /><img src="./trees-transparent.svg" alt="pinheiros" className="pines delay" /></div>
+
         <div className="chao"></div>
+
         <Personagem pos={personagemPos} />
         {frutas.map(fruta => !fruta.pega && <Fruta key={fruta.id} fruta={fruta} />)}
+        
       </div>
+
       <header>
         <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}><img src="/Settings.svg" alt="Configurações" /></button>
         <ScoreDisplay tempoDecorridoMs={tempoDecorridoParaScore} dicasTotaisUsadas={dicasTotaisUsadas} />
         <div className="timer"><img src="./timer.svg" alt="Cronômetro" /><p className="seconds">{tempoExibido}</p></div>
       </header>
-      <Modal isOpen={isPuzzleOpen} onClose={() => {}} title={`Qual é o nome da fruta?`} variant="default">
+
+      <Modal isOpen={isPuzzleOpen} title="Qual o nome da fruta?" onClose={() => {}} variant="puzzle">
+        
         <div className="puzzle-container">
+
+          <div className="fruit-slots">
+
             <img src={puzzleAtual.fruta?.imgSrc} alt={puzzleAtual.fruta?.nome} className="puzzle-fruta-img" />
-            <div className="puzzle-slots-resposta" onDragOver={(e) => e.preventDefault()}>
-                {puzzleAtual.slotsResposta.map((letra, index) => (
-                    <div key={index} className="slot-resposta" onDrop={(e) => handleDropLetra(e, index)}>
-                        {letra && (
-                            <div className="letra-arrastavel" draggable onDragStart={(e) => { e.dataTransfer.setData('letra', JSON.stringify({ letra, index, origem: 'slot' })); }}>
-                                {letra}
-                            </div>
-                        )}
-                    </div>
-                ))}
+
+            <div className={`puzzle-slots-resposta ${puzzleError ? 'error' : ''}`} onDragOver={(e) => e.preventDefault()}>
+              {puzzleAtual.slotsResposta.map((letraObj, index) => (
+                <div key={index} className="slot-resposta" onDrop={(e) => handleDropLetra(e, index)}>
+                  {letraObj && (
+                    <div className="letra-arrastavel" draggable onDragStart={(e) => handleDragStart(e, letraObj, 'slot', index)}>
+                      {letraObj.letra}
+                      </div>
+                    )}
+                  </div>
+              ))}
             </div>
-            <div className="puzzle-letras-grid">
-                {puzzleAtual.letrasGrid.map((letra, index) => (
-                    <div key={index} className="letra-arrastavel" draggable onDragStart={(e) => { e.dataTransfer.setData('letra', JSON.stringify({ letra, index, origem: 'grid' })); }}>
-                        {letra}
-                    </div>
-                ))}
-            </div>
+          </div>
+          
+          <div className="puzzle-letras-grid" onDragOver={(e) => e.preventDefault()} onDrop={handleDropNoGrid}>
+            
+            {puzzleAtual.letrasGrid.map((letraObj, index) => (
+              <div key={letraObj?.id || index} className="slot-grid">
+                {letraObj && (
+                  <div className={`letra-arrastavel letra-arrastavel-${index + 1}`} draggable onDragStart={(e) => handleDragStart(e, letraObj, 'grid', index)}>
+                    {letraObj.letra}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          <div className="balao-dicas">
+            <img src="./baloon.svg" alt="" className="baloon" />
+            <p id="hint-text">{dicaExibida}</p>
+          </div>
         </div>
+
       </Modal>
+
       <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
         <div className="btn-level-grid">
           <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
