@@ -9,6 +9,7 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
     default: "./modal.svg", // modal geral (nome/aviso)
     config: "./modal-yellow.svg", // configurações
     feedback: "./modal-green.svg", // feedback de fase
+    puzzle: "./light-puzzle.svg"
   };
 
   // Define estilos específicos para o modal de feedback
@@ -21,13 +22,19 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
   ? { top: "22%"}
   : {};
 
+  const animationStyle = variant === "puzzle"
+  ? { animation: "rotate 20s linear infinite"}
+  : {};
+
+
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <img
         src={backgrounds[variant]}
         alt="fundo-modal"
         className="modal-bg"
-        style={imgStyle}
+        style={{ ...imgStyle, ...animationStyle }}
       />
 
       <div
