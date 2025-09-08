@@ -88,3 +88,10 @@
         font-size: 1.7rem;
     }
 }
+
+@media (max-width: 500px) {
+    .modal-title {
+        font-size: 1.4rem;
+    }
+}
+
