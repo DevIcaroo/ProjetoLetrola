@@ -221,7 +221,7 @@ header{
 }
 
 .feedback-stats p{
-  width: 25%;
+  width: 50%;
 }
 
 .feedback-stats span {
@@ -239,7 +239,7 @@ header{
 .feedback-info p {
   font-size: 1.3rem;
   margin-bottom: 0.5rem;
-  width: 30%;
+  width: 50%;
 }
 
 .feedback-actions{

@@ -18,7 +18,7 @@
 
 .modal-title{
     position: absolute;
-    top: 31%;
+    top: 22%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 5px;
@@ -81,9 +81,15 @@
     }
 }
 
+@media (max-width: 400px) {
+    .modal-title {
+        top: 26% !important;
+    }
+}
+
 @media (max-width: 600px) {
     .modal-title {
-        top: 36%;
+        top: 25% ;
         left: 50%;
         font-size: 1.7rem;
     }
@@ -92,6 +98,26 @@
 @media (max-width: 500px) {
     .modal-title {
         font-size: 1.4rem;
+        top: 30% ;
+    }
+}
+
+@media (max-width: 800px) {
+    .modal-title {
+        top: 33% !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .modal-title {
+        font-size: 1.5rem;
+        top: 35% ;
+    }
+}
+
+@media (width: 1024px) {
+    .modal-title {
+        top: 37%;
     }
 }
 
