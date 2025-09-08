@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@300..700&display=swap');
+
 *{
     margin: 0;
     padding: 0;
@@ -323,8 +325,6 @@ header{
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  margin-top: 3rem;
   font-family: 'Bangers', cursive;
 }
 
@@ -334,16 +334,27 @@ header{
   object-fit: contain;
 }
 
+.fruit-slots{
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  margin-top: 17rem;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+
+}
+
 .puzzle-slots-resposta {
   display: flex;
   gap: 0.5rem;
+  padding: 0.5rem 1rem;
 }
 
 .slot-resposta {
   width: 50px;
   height: 50px;
-  background-color: #fff;
-  border: 3px solid #763918;
+  background-color: #A1A1A1;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -352,17 +363,19 @@ header{
 
 .puzzle-letras-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
-  background-color: #f0e2b6;
+  background-color: transparent;
   padding: 1rem;
   border-radius: 10px;
+  position: absolute;
+  left: 10%;
+  top: 30%;
 }
 
 .letra-arrastavel {
   width: 50px;
   height: 50px;
-  background-color: #B3CD45;
   color: white;
   display: flex;
   align-items: center;
@@ -370,9 +383,168 @@ header{
   font-size: 2rem;
   border-radius: 8px;
   cursor: grab;
-  border-bottom: #7BAF1B 6px solid;
 }
 
 .letra-arrastavel:active {
   cursor: grabbing;
+}
+
+.letra-arrastavel-1, .letra-arrastavel-7 {
+  background-color: #D3EF5C;
+  border-bottom: #B3CD45 6px solid;
+  border-left: #B3CD45 6px solid;
+}
+.letra-arrastavel-2, .letra-arrastavel-8 {
+  background-color: #98EDE8;
+  border-bottom: #2CB3B7 6px solid;
+  border-left: #2CB3B7 6px solid;
+}
+.letra-arrastavel-3 {
+  background-color: #FFF25D;
+  border-bottom: #FFEA00 6px solid;
+  border-left: #FFEA00 6px solid;
+}
+.letra-arrastavel-4 {
+  background-color: #FF6263;
+  border-bottom: #FF2526 6px solid;
+  border-left: #FF2526 6px solid;
+}
+.letra-arrastavel-5 {
+  background-color: #FF83AA;
+  border-bottom: #FE4590 6px solid;
+  border-left: #FE4590 6px solid;
+}
+.letra-arrastavel-6 {
+  background-color: #FFB33C;
+  border-bottom: #FD8E1B 6px solid;
+  border-left: #FD8E1B 6px solid;
+}
+
+.balao-dicas{
+  transform: translateY(-100px);
+}
+
+.baloon{
+  width: 50rem;
+}
+
+#hint-text{
+  font-size: 1.4rem;
+  width: 40rem;
+  position: absolute;
+  top: 65%;
+  padding-left: 2rem;
+  text-align: start;
+}
+
+.puzzle-slots-resposta.error .slot-resposta {
+  animation: shake-error 0.5s;
+}
+
+@keyframes shake-error {
+  0% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { 
+    transform: translateX(-5px); 
+    background-color: #FF2526;
+  }
+  20%, 40%, 60%, 80%, 100% { 
+    transform: translateX(5px); 
+    background-color: #FF2526;
+  }
+}
+
+@media (max-width: 600px) {
+  .trees-wrapper {
+    bottom: 24%;
+  }
+
+  .puzzle-container {
+    padding-top: 16rem;
+  }
+  .puzzle-letras-grid {
+    top: 35%;
+  }
+  .slot-resposta, .letra-arrastavel {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+  
+  .fruit-slots {
+    order: 1;
+    margin-top: 0;
+  }
+
+  .puzzle-fruta-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .balao-dicas {
+    order: 2;
+    width: 100%;
+    transform: translateY(-50px);
+  }
+
+  .baloon{
+    width: 35rem;
+  }
+
+  #hint-text {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 500px) {
+  header{
+    bottom: 85%;
+  }
+  .seconds{
+    font-size: 1.5rem;
+    right: 14%;
+  }
+  .puzzle-container{
+    padding-top: 26rem;
+  }
+
+  .puzzle-letras-grid {
+    top: 70%;
+    left: 25%;
+    grid-template-columns: repeat(4, 1fr);
+    order: 3;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+
+  .balao-dicas {
+    order: 2;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    transform: translateY(-245px);
+  }
+
+  .baloon{
+    width: 25rem;
+  }
+
+  #hint-text{
+    top: 52%;
+  }
+}
+
+@media (max-width: 400px) {
+  .puzzle-container{
+    padding-top: 22rem;
+  }
+
+  .balao-dicas {
+    order: 2;
+    width: 100%;
+    transform: translateY(-240px);
+  }
+
+  .baloon{
+    width: 24rem;
+  }
 }
