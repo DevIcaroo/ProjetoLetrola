@@ -6,6 +6,7 @@ import Fase2 from "./pages/Fase2.jsx";
 import Fase3 from "./pages/Fase3.jsx";
 import Fase4 from "./pages/Fase4.jsx";
 import Fase5 from "./pages/Fase5.jsx";
+import Ajuda from "./pages/Ajuda.jsx"
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/fase-3" element={<Fase3 />} />
         <Route path="/fase-4" element={<Fase4 />} />
         <Route path="/fase-5" element={<Fase5 />} />
+        <Route path="/ajuda" element={<Ajuda />} />
       </Routes>
     </Router>
   );

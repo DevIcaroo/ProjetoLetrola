@@ -89,7 +89,7 @@ function Home() {
         <div className="btn-grid">
           <button className="btn music-btn"> <div></div> música</button>
           <button className="btn effect-btn"> <div></div> efeitos</button>
-          <button className="btn help-btn"> <div></div> ajuda</button>
+          <button className="btn help-btn" onClick={() => navigate('/ajuda')}> <div></div> ajuda</button>
           <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}> <div></div> fechar</button>
         </div>
       </Modal>
