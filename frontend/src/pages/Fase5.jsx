@@ -432,7 +432,7 @@ function Fase1() {
           <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
           <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
           <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
-          <button className="btn help-btn"><div></div>ajuda</button>
+          <button className="btn help-btn" onClick={() => navigate('/ajuda')}><div></div>ajuda</button>
           <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}><div></div>fechar</button>
         </div>
       </Modal>
