@@ -43,7 +43,14 @@ const gerarLetrasPuzzle = (palavra) => {
 };
 
 // --- COMPONENTES DO JOGO ---
-const Personagem = ({ pos }) => ( <div className="personagem" style={{ left: `${pos.x}px`, top: `${pos.y}px` }}></div> );
+const Personagem = ({ pos, direcao }) => (
+    <img 
+        src="/monkey-run.gif" 
+        className={`personagem-gif ${direcao === 'esquerda' ? 'virado-esquerda' : ''}`} 
+        style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
+        alt="Personagem Macaco Correndo"
+    />
+);
 const Fruta = ({ fruta }) => ( <img src={fruta.imgSrc} className="fruta" style={{ left: `${fruta.x}px`, top: `${fruta.y}px` }} alt={fruta.nome} /> );
 
 function Fase2() {
@@ -65,6 +72,7 @@ function Fase2() {
   const [resultadoFinal, setResultadoFinal] = useState({
     title: "", estrelas: 0, tempoConclusao: 0, proximaMeta: "", aprendizado: "Você aprendeu a soletrar os nomes das frutas!"});
   const [personagemPos, setPersonagemPos] = useState({ x: 100, y: 0, vy: 0 });
+  const [direcaoPersonagem, setDirecaoPersonagem] = useState('direita');
   const [teclasPressionadas, setTeclasPressionadas] = useState({});
   const [frutas, setFrutas] = useState([]);
   const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
@@ -96,6 +104,7 @@ function Fase2() {
     setDicasTotaisUsadas(0);
     setTempoDecorridoParaScore(0);
     setPersonagemPos({ x: 100, y: 0, vy: 0 });
+    setDirecaoPersonagem('direita');
     setColisaoAtiva(false);
     
     const screenWidth = window.innerWidth;
@@ -152,7 +161,6 @@ function Fase2() {
   }, []);
 
   const handleAcertoPuzzle = () => {
-    // A única responsabilidade agora é marcar a fruta como 'pega' e liberar o bloqueio.
     setFrutas(prevFrutas =>
       prevFrutas.map(f =>
         f.id === puzzleAtual.fruta.id ? { ...f, pega: true } : f
@@ -163,20 +171,14 @@ function Fase2() {
     setItemEmJogo(null);
     setDicaExibida("Parabéns! Continue coletando as outras frutas.");
   };
-
-  // ✅ SOLUÇÃO: useEffect para verificar a condição de vitória de forma declarativa
+  
   useEffect(() => {
-      // Se não houver frutas no estado ou se o jogo não estiver rodando, não faz nada
-      if (frutas.length === 0 || estadoJogo !== "jogando") {
-          return;
-      }
-      // Verifica se TODAS as frutas no array de estado têm a propriedade `pega: true`
+      if (frutas.length === 0 || estadoJogo !== "jogando") return;
       const todasPegas = frutas.every(fruta => fruta.pega);
-      // Se todas foram pegas, conclui a fase
       if (todasPegas) {
           handleConcluirFase();
       }
-  }, [frutas, estadoJogo]); // Roda sempre que o estado `frutas` muda
+  }, [frutas, estadoJogo]);
 
   // --- GAME LOOP ---
   const gameLoop = useCallback(() => {
@@ -186,8 +188,14 @@ function Fase2() {
     }
     setPersonagemPos(prevPos => {
       let { x, y, vy } = prevPos;
-      if (teclasPressionadas['ArrowLeft']) x -= VELOCIDADE_PERSONAGEM;
-      if (teclasPressionadas['ArrowRight']) x += VELOCIDADE_PERSONAGEM;
+      if (teclasPressionadas['ArrowLeft']) {
+        x -= VELOCIDADE_PERSONAGEM;
+        setDirecaoPersonagem('esquerda');
+      }
+      if (teclasPressionadas['ArrowRight']) {
+        x += VELOCIDADE_PERSONAGEM;
+        setDirecaoPersonagem('direita');
+      }
       vy += GRAVIDADE;
       y += vy;
       const chao = window.innerHeight * (ALTURA_CHAO / 100) - 50;
@@ -358,7 +366,7 @@ function Fase2() {
         <div className="clouds-wrapper"><img src="./clouds.svg" alt="nuvens" className="clouds" /><img src="./clouds.svg" alt="nuvens" className="clouds delay" /></div>
         <div className="trees-wrapper"><img src="./trees-transparent.svg" alt="pinheiros" className="pines" /><img src="./trees-transparent.svg" alt="pinheiros" className="pines delay" /></div>
         <div className="chao"></div>
-        <Personagem pos={personagemPos} />
+        <Personagem pos={personagemPos} direcao={direcaoPersonagem} />
         {frutas.map(fruta => !fruta.pega && <Fruta key={fruta.id} fruta={fruta} />)}
       </div>
       <header>
