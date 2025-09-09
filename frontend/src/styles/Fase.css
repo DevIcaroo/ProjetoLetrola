@@ -304,12 +304,20 @@ header{
   z-index: 0;
 }
 
-.personagem {
+.personagem-gif {
   position: absolute;
-  width: 50px;
-  height: 50px;
-  background-color: #ff5733; /* Um quadrado laranja por enquanto */
+  /* Ajuste a largura e altura para o tamanho do seu GIF */
+  width: 100px; 
+  height: 100px;
   z-index: 2;
+  /* Opcional: adiciona uma transição suave ao virar */
+  transition: transform 0.1s ease-in-out;
+}
+
+/* Classe aplicada para virar o personagem para a esquerda */
+.personagem-gif.virado-esquerda {
+  /* Vira a imagem horizontalmente no eixo X */
+  transform: scaleX(-1);
 }
 
 .fruta {
