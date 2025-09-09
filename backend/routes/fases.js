@@ -1,22 +1,29 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('../db');
+const db = require("../db");
 
-router.get('/fase/:id_jogador/:fase', (req, res) => {
-  const { id_jogador, fase } = req.params;
+router.get("/fase/:id_jogador/:mundo/:fase", (req, res) => {
+  const { id_jogador, mundo, fase } = req.params;
+  const mundoRequisitado = parseInt(mundo);
   const faseRequisitada = parseInt(fase);
 
-  if (!id_jogador || isNaN(faseRequisitada) || faseRequisitada < 1) {
-    return res.status(400).json({ error: 'Parâmetros inválidos.' });
+  if (
+    !id_jogador ||
+    isNaN(mundoRequisitado) ||
+    mundoRequisitado < 1 ||
+    isNaN(faseRequisitada) ||
+    faseRequisitada < 1
+  ) {
+    return res.status(400).json({ error: "Parâmetros inválidos." });
   }
 
   db.get(
-    `SELECT MAX(fase) as fase_atual FROM progresso WHERE id_jogador = ?`,
-    [id_jogador],
+    `SELECT MAX(fase) as fase_atual FROM progresso WHERE id_jogador = ? AND mundo = ?`,
+    [id_jogador, mundoRequisitado],
     (err, row) => {
       if (err) {
-        console.error('Erro ao verificar acesso à fase:', err);
-        return res.status(500).json({ error: 'Erro interno.' });
+        console.error("Erro ao verificar acesso à fase:", err);
+        return res.status(500).json({ error: "Erro interno." });
       }
 
       const faseAtual = row?.fase_atual || 0;
@@ -24,18 +31,19 @@ router.get('/fase/:id_jogador/:fase', (req, res) => {
       if (faseRequisitada > faseAtual + 1) {
         return res.status(403).json({
           permitido: false,
-          mensagem: `Fase ${faseRequisitada} bloqueada. Conclua a fase ${faseAtual + 1} primeiro.`,
+          mensagem: `Fase ${faseRequisitada} bloqueada. Conclua a fase ${
+            faseAtual + 1
+          } primeiro.`,
         });
-      }
+      } // A consulta agora busca dados da fase usando MUNDO e FASE
 
-      // Buscar dados da fase para enviar junto (opcional)
       db.get(
-        `SELECT nome, descricao FROM fases WHERE id = ?`,
-        [faseRequisitada],
+        `SELECT nome, descricao FROM fases WHERE mundo = ? AND fase = ?`,
+        [mundoRequisitado, faseRequisitada],
         (faseErr, faseRow) => {
           if (faseErr) {
-            console.error('Erro ao buscar dados da fase:', faseErr);
-            return res.status(500).json({ error: 'Erro interno.' });
+            console.error("Erro ao buscar dados da fase:", faseErr);
+            return res.status(500).json({ error: "Erro interno." });
           }
 
           res.json({
