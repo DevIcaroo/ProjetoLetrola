@@ -337,8 +337,8 @@ header{
 .fruit-slots{
   display: grid;
   justify-items: center;
-  gap: 1rem;
-  margin-top: 17rem;
+  gap: 2rem;
+  margin-top: 14rem;
   align-items: center;
   position: relative;
   z-index: 2;
@@ -450,6 +450,12 @@ header{
   20%, 40%, 60%, 80%, 100% { 
     transform: translateX(5px); 
     background-color: #FF2526;
+  }
+}
+
+@media (width: 1024px){
+  .fruit-slots{
+    margin-top: 11rem;
   }
 }
 

@@ -4,13 +4,16 @@ import "../styles/GameMap.css";
 import Modal from "../components/Modal";
 import ScoreDisplay from "../components/ScoreDisplay";
 import { buscarFaseAtual, buscarEstrelas } from "../services/apiProgresso";
-import { verificarAcessoFase } from "../services/apiFases"; // 🔹 1. IMPORTE A API DE VERIFICAÇÃO
+import { verificarAcessoFase } from "../services/apiFases";
 
 function GameMap() {
   const location = useLocation();
   const { id_jogador } = location.state || {};
   const navigate = useNavigate();
+  
+  const mundo_id = 1; 
   const levels = [1, 2, 3, 4, 5];
+
   const [starsPerLevel, setStarsPerLevel] = useState({});
   const [faseMaisAlta, setFaseMaisAlta] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,12 +27,14 @@ function GameMap() {
     }
 
     const buscarDadosDoJogador = async () => {
-      const faseAtual = await buscarFaseAtual(id_jogador);
+      // ✅ CORREÇÃO: Passa o mundo_id para a função da API
+      const faseAtual = await buscarFaseAtual(id_jogador, mundo_id);
       setFaseMaisAlta(faseAtual);
 
       const newStars = {};
       for (const level of levels) {
-        newStars[level] = await buscarEstrelas(id_jogador, level);
+        // ✅ CORREÇÃO: Passa o mundo_id para a função da API
+        newStars[level] = await buscarEstrelas(id_jogador, mundo_id, level);
       }
       setStarsPerLevel(newStars);
     };
@@ -38,16 +43,13 @@ function GameMap() {
   }, [id_jogador, navigate]);
 
   const handleLevelClick = async (level) => {
-    // 🔹 2. ADICIONA A CHAMADA DE VERIFICAÇÃO AO BACKEND
-    // A trava visual (isLocked) já impede a maioria dos cliques,
-    // mas esta chamada garante a segurança e pega a mensagem do backend.
     try {
-      const resultado = await verificarAcessoFase(id_jogador, level);
+      // ✅ CORREÇÃO: Passa o mundo_id para a função da API
+      const resultado = await verificarAcessoFase(id_jogador, mundo_id, level);
       
       if (resultado?.permitido) {
         navigate(`/fase-${level}`, { state: { id_jogador } });
       } else {
-        // Se 'permitido' for false, usa a mensagem da API
         setModalMessage(resultado.mensagem || "Você ainda não pode acessar esta fase.");
         setIsModalOpen(true);
       }

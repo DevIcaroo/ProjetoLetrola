@@ -46,11 +46,13 @@ const gerarLetrasPuzzle = (palavra) => {
 const Personagem = ({ pos }) => ( <div className="personagem" style={{ left: `${pos.x}px`, top: `${pos.y}px` }}></div> );
 const Fruta = ({ fruta }) => ( <img src={fruta.imgSrc} className="fruta" style={{ left: `${fruta.x}px`, top: `${fruta.y}px` }} alt={fruta.nome} /> );
 
-function Fase1() {
+function Fase5() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id_jogador } = location.state || {};
+  const mundo_id = 1;
   const fase_id = 5;
+  const proxima_fase_id = fase_id + 1;
 
   // --- ESTADOS ---
   const [estadoJogo, setEstadoJogo] = useState("carregando");
@@ -81,18 +83,14 @@ function Fase1() {
 
   // --- INICIALIZAÇÃO ---
   const inicializarFase = useCallback(async () => {
-    console.log(`Buscando itens para a fase ${fase_id}...`);
-    const todosOsItensDaApi = await buscarItensPorFase(fase_id);
+    console.log(`Buscando itens para o Mundo ${mundo_id}, Fase ${fase_id}...`);
+    const itensDaApi = await buscarItensPorFase(mundo_id, fase_id);
 
-    if (todosOsItensDaApi.length === 0) {
-        console.error(`Nenhum item encontrado para a fase ${fase_id}. Verifique o backend.`);
+    if (itensDaApi.length === 0) {
+        console.error(`Nenhum item encontrado para a fase. Verifique o backend.`);
         setEstadoJogo("erro");
         return;
     }
-
-    // filtra a lista para manter apenas as frutas desejadas
-    const frutasDesejadas = ['ABACAXI', 'MELANCIA', 'MARACUJÁ'];
-    const itensFiltrados = todosOsItensDaApi.filter(item => frutasDesejadas.includes(item.resposta.toUpperCase()));
 
     setTempoInicioFase(Date.now());
     setDicasTotaisUsadas(0);
@@ -101,9 +99,9 @@ function Fase1() {
     setColisaoAtiva(false);
     
     const screenWidth = window.innerWidth;
-    const totalWorldWidth = itensFiltrados.length * 400;
+    const totalWorldWidth = itensDaApi.length * 400;
 
-    setFrutas(itensFiltrados.map((item, index) => ({
+    setFrutas(itensDaApi.map((item, index) => ({
         id: item.id,
         nome: item.resposta.toUpperCase(),
         imgSrc: item.imagem_url,
@@ -118,8 +116,8 @@ function Fase1() {
     setEstadoJogo("jogando");
     setIsConfigOpen(false);
     setIsFeedbackOpen(false);
-  }, [fase_id]);
-
+  }, [mundo_id, fase_id]);
+    
   useEffect(() => {
     if (!id_jogador) {
       navigate("/");
@@ -154,6 +152,7 @@ function Fase1() {
   }, []);
 
   const handleAcertoPuzzle = () => {
+    // A única responsabilidade agora é marcar a fruta como 'pega' e liberar o bloqueio.
     setFrutas(prevFrutas =>
       prevFrutas.map(f =>
         f.id === puzzleAtual.fruta.id ? { ...f, pega: true } : f
@@ -165,15 +164,19 @@ function Fase1() {
     setDicaExibida("Parabéns! Continue coletando as outras frutas.");
   };
 
-
-  
+  // ✅ SOLUÇÃO: useEffect para verificar a condição de vitória de forma declarativa
   useEffect(() => {
-      if (frutas.length === 0 || estadoJogo !== "jogando") return;
+      // Se não houver frutas no estado ou se o jogo não estiver rodando, não faz nada
+      if (frutas.length === 0 || estadoJogo !== "jogando") {
+          return;
+      }
+      // Verifica se TODAS as frutas no array de estado têm a propriedade `pega: true`
       const todasPegas = frutas.every(fruta => fruta.pega);
+      // Se todas foram pegas, conclui a fase
       if (todasPegas) {
           handleConcluirFase();
       }
-  }, [frutas, estadoJogo]);
+  }, [frutas, estadoJogo]); // Roda sempre que o estado `frutas` muda
 
   // --- GAME LOOP ---
   const gameLoop = useCallback(() => {
@@ -232,20 +235,17 @@ function Fase1() {
   const handleDropLetra = (e, indexSlot) => {
     e.preventDefault();
     const letraArrastada = JSON.parse(e.dataTransfer.getData('letraData'));
-    
     setPuzzleAtual(prev => {
         const novasLetrasGrid = [...prev.letrasGrid];
         const novosSlots = [...prev.slotsResposta];
         const letraExistenteNoSlot = novosSlots[indexSlot];
         novosSlots[indexSlot] = { id: letraArrastada.id, letra: letraArrastada.letra };
-
         if (letraArrastada.origem === 'grid') {
             const indexNaGrid = novasLetrasGrid.findIndex(l => l && l.id === letraArrastada.id);
             if (indexNaGrid > -1) novasLetrasGrid[indexNaGrid] = null;
         } else {
             novosSlots[letraArrastada.index] = null;
         }
-
         if (letraExistenteNoSlot) {
             const indexOriginal = novasLetrasGrid.findIndex(l => l && l.id === letraExistenteNoSlot.id);
             if(indexOriginal > -1) {
@@ -255,25 +255,19 @@ function Fase1() {
                 if(primeiroVazio > -1) novasLetrasGrid[primeiroVazio] = letraExistenteNoSlot;
             }
         }
-
-        // LÓGICA DE VERIFICAÇÃO DE ERRO E ACERTO
         const todosPreenchidos = novosSlots.every(slot => slot !== null);
         if (todosPreenchidos) {
             const palavraFormada = novosSlots.map(l => l.letra).join('');
             if (palavraFormada === prev.fruta.nome) {
-                // Palavra correta
                 setTimeout(() => handleAcertoPuzzle(), 200);
             } else {
-                // Palavra incorreta: ativa o estado de erro
                 setPuzzleError(true);
-                // Desativa o estado de erro após a animação para que possa ser ativado novamente
                 setTimeout(() => setPuzzleError(false), 500); 
             }
         }
-
         return { ...prev, letrasGrid: novasLetrasGrid, slotsResposta: novosSlots };
     });
-};
+  };
 
   const handleDropNoGrid = (e) => {
     e.preventDefault();
@@ -296,21 +290,16 @@ function Fase1() {
     setTempoExibido(formatTime(tempoMs, 'ms'));
     setTempoDecorridoParaScore(tempoMs);
   };
-
   const handleItemTempoTick = (tempoMs) => {
     setTempoDoItemExibido(formatTime(tempoMs, 'ms'));
   };
-
   const handleDicaLiberada = (nivelDica, itemId) => {
     const item = itemEmJogo;
     if (!item || item.id !== itemId) return;
-
-    // Seleciona a dica correta com base no nível
     const dicaTexto = nivelDica === 1 ? item.dica1 : item.dica2;
-
     if (dicaTexto) {
-      setDicaExibida(dicaTexto); // Atualiza diretamente o parágrafo da dica
-      setDicasTotaisUsadas(prev => prev + 1); // Registra que uma dica foi usada
+      setDicaExibida(dicaTexto);
+      setDicasTotaisUsadas(prev => prev + 1);
     }
   };
 
@@ -334,7 +323,7 @@ function Fase1() {
         if (dicasTotaisUsadas > LIMITE_DICAS) { estrelas = Math.max(0, estrelas - 1); }
     }
     try {
-        await salvarProgresso(id_jogador, fase_id, estrelas, tempoFinalSegundos);
+        await salvarProgresso(id_jogador, mundo_id, fase_id, estrelas, tempoFinalSegundos);
     } catch (error) { console.error("Falha ao salvar o progresso:", error); }
     setResultadoFinal({
         title, estrelas, tempoConclusao: tempoFinalSegundos, proximaMeta,
@@ -345,7 +334,7 @@ function Fase1() {
 
   const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
   const handleRetry = () => inicializarFase();
-  const handleAvancar = () => navigate(`/mapa-do-jogo`, { state: { id_jogador } });
+  const handleAvancar = () => navigate(`/fase-${proxima_fase_id}`, { state: { id_jogador } });
   const handleVoltarAoMapa = () => navigate("/mapa-do-jogo", { state: { id_jogador } });
 
   if (estadoJogo === "carregando") { return <div style={{color: "white"}}>Carregando fase...</div>; }
@@ -365,49 +354,35 @@ function Fase1() {
         />
       )}
       <div className="level-container">
-
         <img src="./level-1-background.svg" alt="fundo-de-floresta" className="level-1-bg" />
-
         <div className="clouds-wrapper"><img src="./clouds.svg" alt="nuvens" className="clouds" /><img src="./clouds.svg" alt="nuvens" className="clouds delay" /></div>
-
         <div className="trees-wrapper"><img src="./trees-transparent.svg" alt="pinheiros" className="pines" /><img src="./trees-transparent.svg" alt="pinheiros" className="pines delay" /></div>
-
         <div className="chao"></div>
-
         <Personagem pos={personagemPos} />
         {frutas.map(fruta => !fruta.pega && <Fruta key={fruta.id} fruta={fruta} />)}
-        
       </div>
-
       <header>
         <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}><img src="/Settings.svg" alt="Configurações" /></button>
         <ScoreDisplay tempoDecorridoMs={tempoDecorridoParaScore} dicasTotaisUsadas={dicasTotaisUsadas} />
         <div className="timer"><img src="./timer.svg" alt="Cronômetro" /><p className="seconds">{tempoExibido}</p></div>
       </header>
-
       <Modal isOpen={isPuzzleOpen} title="Qual o nome da fruta?" onClose={() => {}} variant="puzzle">
-        
         <div className="puzzle-container">
-
           <div className="fruit-slots">
-
             <img src={puzzleAtual.fruta?.imgSrc} alt={puzzleAtual.fruta?.nome} className="puzzle-fruta-img" />
-
             <div className={`puzzle-slots-resposta ${puzzleError ? 'error' : ''}`} onDragOver={(e) => e.preventDefault()}>
               {puzzleAtual.slotsResposta.map((letraObj, index) => (
                 <div key={index} className="slot-resposta" onDrop={(e) => handleDropLetra(e, index)}>
                   {letraObj && (
                     <div className="letra-arrastavel" draggable onDragStart={(e) => handleDragStart(e, letraObj, 'slot', index)}>
                       {letraObj.letra}
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
-          
           <div className="puzzle-letras-grid" onDragOver={(e) => e.preventDefault()} onDrop={handleDropNoGrid}>
-            
             {puzzleAtual.letrasGrid.map((letraObj, index) => (
               <div key={letraObj?.id || index} className="slot-grid">
                 {letraObj && (
@@ -418,21 +393,18 @@ function Fase1() {
               </div>
             ))}
           </div>
-          
           <div className="balao-dicas">
             <img src="./baloon.svg" alt="" className="baloon" />
             <p id="hint-text">{dicaExibida}</p>
           </div>
         </div>
-
       </Modal>
-
       <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
         <div className="btn-level-grid">
           <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
           <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
           <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
-          <button className="btn help-btn" onClick={() => navigate('/ajuda')}><div></div>ajuda</button>
+          <button className="btn help-btn" onClick={() => navigate('/ajuda')}><div></div> ajuda</button>
           <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}><div></div>fechar</button>
         </div>
       </Modal>
@@ -456,4 +428,4 @@ function Fase1() {
   );
 }
 
-export default Fase1;
+export default Fase5;
