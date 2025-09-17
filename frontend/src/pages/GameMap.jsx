@@ -5,6 +5,8 @@ import Modal from "../components/Modal";
 import ScoreDisplay from "../components/ScoreDisplay";
 import { buscarFaseAtual, buscarEstrelas } from "../services/apiProgresso";
 import { verificarAcessoFase } from "../services/apiFases";
+import { mundos } from "../data/mundoData";
+
 
 function GameMap() {
   const location = useLocation();
@@ -12,6 +14,8 @@ function GameMap() {
   const navigate = useNavigate();
   
   const mundo_id = 1; 
+  const dadosMundo = mundos[mundo_id] || {};
+  console.log("Dados do Mundo:", dadosMundo); // Verifica os dados do mundo no console
   const levels = [1, 2, 3, 4, 5];
 
   const [starsPerLevel, setStarsPerLevel] = useState({});
@@ -19,6 +23,9 @@ function GameMap() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [indiceHistoria, setIndiceHistoria] = useState(0);
+  const [mostrarHistoria, setMostrarHistoria] = useState(true);
+
 
   useEffect(() => {
     if (!id_jogador) {
@@ -27,13 +34,13 @@ function GameMap() {
     }
 
     const buscarDadosDoJogador = async () => {
-      // ✅ CORREÇÃO: Passa o mundo_id para a função da API
+      // CORREÇÃO: Passa o mundo_id para a função da API
       const faseAtual = await buscarFaseAtual(id_jogador, mundo_id);
       setFaseMaisAlta(faseAtual);
 
       const newStars = {};
       for (const level of levels) {
-        // ✅ CORREÇÃO: Passa o mundo_id para a função da API
+        // CORREÇÃO: Passa o mundo_id para a função da API
         newStars[level] = await buscarEstrelas(id_jogador, mundo_id, level);
       }
       setStarsPerLevel(newStars);
@@ -44,11 +51,11 @@ function GameMap() {
 
   const handleLevelClick = async (level) => {
     try {
-      // ✅ CORREÇÃO: Passa o mundo_id para a função da API
+      // CORREÇÃO: Passa o mundo_id para a função da API
       const resultado = await verificarAcessoFase(id_jogador, mundo_id, level);
       
       if (resultado?.permitido) {
-        navigate(`/fase-${level}`, { state: { id_jogador } });
+        navigate(`/mundo/${mundo_id}/fase/${level}`, { state: { id_jogador } });
       } else {
         setModalMessage(resultado.mensagem || "Você ainda não pode acessar esta fase.");
         setIsModalOpen(true);
@@ -60,13 +67,40 @@ function GameMap() {
     }
   };
 
+  const handleProximoDialogo = () => {
+    // A lógica que usa o array (em mundoData.js) de história do mundo atual
+    if (indiceHistoria < dadosMundo.historia.length - 1) {
+      setIndiceHistoria(indiceHistoria + 1);
+    } else {
+      setMostrarHistoria(false);
+    }
+  };
+
   const totalStars = Object.values(starsPerLevel).reduce((a, b) => a + b, 0);
   const maxStars = levels.length * 3;
 
   return (
     <section className="map-section">
+       {/* Tela da História (agora dinâmica) */}
+      {mostrarHistoria && (
+        <div className="historia-overlay">
+          <div className="historia-container">
+            <button className="historia-btn" onClick={handleProximoDialogo}>
+              {indiceHistoria < dadosMundo.historia.length - 1 ? "Próximo" : "Jogar!"}
+            </button>
+            <p className="historia-dialogo">
+              {dadosMundo.historia[indiceHistoria].dialogo}
+            </p>
+            <img
+              src={dadosMundo.historia[indiceHistoria].imagem}
+              alt="Cena da história"
+              className="historia-imagem"
+            />
+          </div>
+        </div>
+      )}
       <div className="map-container">
-        <img src="/map.svg" alt="ilustração-do-mapa" className="map" />
+        <img src={dadosMundo.mapa.imagem} alt={`Mapa do ${dadosMundo.nome}`} className="map"/>
 
         <div className="greeting">
           <h1>Olá, {id_jogador || "Jogador"}! </h1>
