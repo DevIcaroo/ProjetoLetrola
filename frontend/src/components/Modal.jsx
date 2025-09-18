@@ -4,29 +4,23 @@ import "../styles/Modal.css";
 function Modal({ isOpen, onClose, title, children, variant = "default" }) {
   if (!isOpen) return null;
 
-  // Seleciona a imagem de fundo de acordo com o tipo de modal
+  // CORREÇÃO: Os caminhos agora são absolutos a partir da raiz (/)
+  // Isso garante que as imagens sejam encontradas em qualquer rota (ex: /mundo/1/fase/1)
   const backgrounds = {
-    default: "./modal.svg", // modal geral (nome/aviso)
-    config: "./modal-yellow.svg", // configurações
-    feedback: "./modal-green.svg", // feedback de fase
-    puzzle: "./light-puzzle.svg"
+    default: "/modal.svg",
+    config: "/modal-yellow.svg",
+    feedback: "/modal-green.svg",
+    puzzle: "/light-puzzle.svg" 
   };
 
-  // Define estilos específicos para o modal de feedback
   const imgStyle =
     variant === "feedback"
       ? { width: "40rem", height: "40rem" }
       : {};
 
-  /*const titleStyle = variant === "feedback"
-  ? { top: "22%"}
-  : {};*/
-
   const animationStyle = variant === "puzzle"
   ? { animation: "rotate 20s linear infinite"}
   : {};
-
-
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -36,15 +30,12 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
         className="modal-bg"
         style={{ ...imgStyle, ...animationStyle }}
       />
-
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
       >
         {title && <h2 className="modal-title">{title}</h2>}
-
         <div className="modal-body">{children}</div>
-
         <button onClick={onClose} className="close-btn">
           Fechar
         </button>
