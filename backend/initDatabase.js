@@ -2,31 +2,40 @@ const db = require('./db');
 
 function criarTabelas() {
   db.serialize(() => {
-    // Ativar foreign keys
-    db.run("PRAGMA foreign_keys = ON", (err) => {
-      if (err) console.error("Erro ao ativar foreign keys:", err);
-      else console.log("Foreign keys ativadas com sucesso.");
-    });
+    db.run("PRAGMA foreign_keys = ON");
 
-    // Criação das tabelas
+    // Criação da tabela de jogadores
+    db.run(`
+      CREATE TABLE IF NOT EXISTS jogadores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL UNIQUE
+      )
+    `);
+    
+    // Criação da tabela de progresso
     db.run(`
       CREATE TABLE IF NOT EXISTS progresso (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_jogador TEXT NOT NULL,
+        id_jogador INTEGER NOT NULL,
         mundo INTEGER NOT NULL,
         fase INTEGER NOT NULL,
         estrelas INTEGER DEFAULT 0,
         tempo_gasto INTEGER,
         data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(id_jogador, mundo, fase)
+        UNIQUE(id_jogador, mundo, fase),
+        FOREIGN KEY (id_jogador) REFERENCES jogadores(id)
       )
     `);
+
+    // Criação da tabela de personagens
     db.run(`
       CREATE TABLE IF NOT EXISTS personagens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL
       )
     `);
+
+    // Criação da tabela de fases
     db.run(`
       CREATE TABLE IF NOT EXISTS fases (
         mundo INTEGER NOT NULL,
@@ -37,6 +46,8 @@ function criarTabelas() {
         PRIMARY KEY (mundo, fase)
       )
     `);
+
+    // Criação da tabela de dialogos
     db.run(`
       CREATE TABLE IF NOT EXISTS dialogos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,6 +61,8 @@ function criarTabelas() {
         FOREIGN KEY (mundo, fase) REFERENCES fases(mundo, fase)
       )
     `);
+
+    // Criação da tabela de itens de fase
     db.run(`
       CREATE TABLE IF NOT EXISTS itens_fase (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
