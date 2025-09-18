@@ -7,15 +7,16 @@ import { buscarFaseAtual, buscarEstrelas } from "../services/apiProgresso";
 import { verificarAcessoFase } from "../services/apiFases";
 import { mundos } from "../data/mundoData";
 
-
 function GameMap() {
   const location = useLocation();
-  const { id_jogador } = location.state || {};
   const navigate = useNavigate();
   
-  const mundo_id = 1; 
-  const dadosMundo = mundos[mundo_id] || {};
-  console.log("Dados do Mundo:", dadosMundo); // Verifica os dados do mundo no console
+  // MUDANÇA: Recebe o objeto 'jogador' e o 'mundo_id' do estado da navegação.
+  // Se 'mundo_id' não for passado, ele assume o valor padrão 1.
+  const { jogador, mundo_id = 1 } = location.state || {};
+
+  // Carrega os dados do mundo correto. Se o mundo não existir, usa o mundo 1.
+  const dadosMundo = mundos[mundo_id] || mundos[1];
   const levels = [1, 2, 3, 4, 5];
 
   const [starsPerLevel, setStarsPerLevel] = useState({});
@@ -24,38 +25,38 @@ function GameMap() {
   const [modalMessage, setModalMessage] = useState("");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [indiceHistoria, setIndiceHistoria] = useState(0);
-  const [mostrarHistoria, setMostrarHistoria] = useState(true);
-
+  // Controla se a história deve ser mostrada. O 'sessionStorage' evita que ela reapareça ao voltar de uma fase.
+  const [mostrarHistoria, setMostrarHistoria] = useState(!sessionStorage.getItem(`historia_mundo_${mundo_id}_vista`));
 
   useEffect(() => {
-    if (!id_jogador) {
+    if (!jogador || !jogador.id) {
       navigate("/");
       return;
     }
 
     const buscarDadosDoJogador = async () => {
-      // CORREÇÃO: Passa o mundo_id para a função da API
-      const faseAtual = await buscarFaseAtual(id_jogador, mundo_id);
+      // Usa jogador.id e o mundo_id dinâmico para as chamadas de API
+      const faseAtual = await buscarFaseAtual(jogador.id, mundo_id);
       setFaseMaisAlta(faseAtual);
 
       const newStars = {};
       for (const level of levels) {
-        // CORREÇÃO: Passa o mundo_id para a função da API
-        newStars[level] = await buscarEstrelas(id_jogador, mundo_id, level);
+        newStars[level] = await buscarEstrelas(jogador.id, mundo_id, level);
       }
       setStarsPerLevel(newStars);
     };
 
     buscarDadosDoJogador();
-  }, [id_jogador, navigate]);
+    // MUDANÇA: Adicionado 'mundo_id' ao array de dependências para recarregar os dados quando o mundo mudar.
+  }, [jogador, navigate, mundo_id]);
+
 
   const handleLevelClick = async (level) => {
     try {
-      // CORREÇÃO: Passa o mundo_id para a função da API
-      const resultado = await verificarAcessoFase(id_jogador, mundo_id, level);
-      
+      const resultado = await verificarAcessoFase(jogador.id, mundo_id, level);
       if (resultado?.permitido) {
-        navigate(`/mundo/${mundo_id}/fase/${level}`, { state: { id_jogador } });
+        // MUDANÇA: A navegação agora usa o 'mundo_id' dinâmico.
+        navigate(`/mundo/${mundo_id}/fase/${level}`, { state: { jogador } });
       } else {
         setModalMessage(resultado.mensagem || "Você ainda não pode acessar esta fase.");
         setIsModalOpen(true);
@@ -68,10 +69,11 @@ function GameMap() {
   };
 
   const handleProximoDialogo = () => {
-    // A lógica que usa o array (em mundoData.js) de história do mundo atual
     if (indiceHistoria < dadosMundo.historia.length - 1) {
       setIndiceHistoria(indiceHistoria + 1);
     } else {
+      // Marca a história como vista no sessionStorage para não mostrar novamente na mesma sessão.
+      sessionStorage.setItem(`historia_mundo_${mundo_id}_vista`, 'true');
       setMostrarHistoria(false);
     }
   };
@@ -81,29 +83,30 @@ function GameMap() {
 
   return (
     <section className="map-section">
-       {/* Tela da História (agora dinâmica) */}
-      {mostrarHistoria && (
+      {/* Tela da História (agora dinâmica) */}
+      {mostrarHistoria && dadosMundo.historia && (
         <div className="historia-overlay">
           <div className="historia-container">
-            <button className="historia-btn" onClick={handleProximoDialogo}>
-              {indiceHistoria < dadosMundo.historia.length - 1 ? "Próximo" : "Jogar!"}
-            </button>
-            <p className="historia-dialogo">
-              {dadosMundo.historia[indiceHistoria].dialogo}
-            </p>
             <img
               src={dadosMundo.historia[indiceHistoria].imagem}
               alt="Cena da história"
               className="historia-imagem"
             />
+            <p className="historia-dialogo">
+              {dadosMundo.historia[indiceHistoria].dialogo}
+            </p>
+            <button className="historia-btn" onClick={handleProximoDialogo}>
+              {indiceHistoria < dadosMundo.historia.length - 1 ? "Próximo →" : "Jogar!"}
+            </button>
           </div>
         </div>
       )}
+
       <div className="map-container">
         <img src={dadosMundo.mapa.imagem} alt={`Mapa do ${dadosMundo.nome}`} className="map"/>
 
         <div className="greeting">
-          <h1>Olá, {id_jogador || "Jogador"}! </h1>
+          <h1>Olá, {jogador?.nome || "Jogador"}!</h1>
           <div className="stars-count">
             <p>{totalStars} / {maxStars}</p>
             <img src="/stars-count.svg" alt="tabua-de-madeira-com-estrelas" />
@@ -147,7 +150,6 @@ function GameMap() {
       <Modal
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}
-        title="Configurações"
         variant="config"
       >
         <div className="btn-grid">
