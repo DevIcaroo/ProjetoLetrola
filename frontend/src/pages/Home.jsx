@@ -2,28 +2,59 @@ import React, { useState } from "react";
 import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal.jsx";
+import { buscarJogador, criarJogador } from "../services/apiJogadores.js";
 
 function Home() {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);       // Modal do nome
-  const [isConfigOpen, setIsConfigOpen] = useState(false);     // Modal de configurações
-  const [id_jogador, setId_jogador] = useState("");            // ✅ nome do jogador
-  const [showError, setShowError] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [nomeJogador, setNomeJogador] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleStart = () => {
     setIsModalOpen(true);
+    setErrorMessage("");
+    setNomeJogador("");
   };
 
-  const handleContinue = () => {
-    if (id_jogador.trim() === "") {
-      setShowError(true); // exibe mensagem de erro
-    } else {
-      setShowError(false); // limpa erro
-      setIsModalOpen(false);
-
-      // Exemplo: navegar para o mapa
-      navigate("/mapa-do-jogo", { state: { id_jogador } });
+  const handleContinue = async () => {
+    if (nomeJogador.trim() === "") {
+      setErrorMessage("Por favor, digite seu nome");
+      return;
     }
+
+    setIsLoading(true);
+    setErrorMessage("");
+
+    let jogador;
+    try {
+      // Tenta buscar o jogador para obter o objeto { id, nome }
+      jogador = await buscarJogador(nomeJogador);
+      console.log("Jogador encontrado, continuando...");
+    } catch (error) {
+      // Se não encontrar, cria um novo jogador para obter o objeto { id, nome }
+      if (error.message.includes("Jogador não encontrado")) {
+        try {
+          console.log("Jogador não encontrado, criando um novo...");
+          jogador = await criarJogador(nomeJogador);
+        } catch (createError) {
+          setErrorMessage(createError.message);
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // Lida com outros erros (ex: nome já em uso, falha de rede)
+        setErrorMessage(error.message);
+        setIsLoading(false);
+        return;
+      }
+    }
+    
+    // MUDANÇA: Navega passando o objeto 'jogador' completo ({ id, nome }) no estado.
+    // Isso garante que as próximas telas terão acesso tanto ao ID quanto ao nome.
+    navigate("/mapa-do-jogo", { state: { jogador } });
+    setIsLoading(false);
   };
 
   return (
@@ -44,7 +75,6 @@ function Home() {
           <img src="/red cube.svg" alt="" className="red" />
         </div>
 
-        {/* Botão de Configurações */}
         <button className="settings-btn" onClick={() => setIsConfigOpen(true)}>
           <div></div>
           <img src="/Settings.svg" alt="Configurações" />
@@ -56,34 +86,30 @@ function Home() {
         </button>
       </div>
 
-      {/* Modal para nome do jogador */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Quem é você?"
+        onClose={() => !isLoading && setIsModalOpen(false)}
         variant="default"
       >
-        <p>Digite seu nome</p>
+        <p>Digite seu nome </p>
         <input
           type="text"
-          value={id_jogador} // ✅ usando id_jogador
+          value={nomeJogador}
           placeholder="Ex: Matheus"
           className="input-name"
-          onChange={(e) => setId_jogador(e.target.value)} // ✅ atualiza id_jogador
+          onChange={(e) => setNomeJogador(e.target.value)}
+          disabled={isLoading}
         />
-
-        <button onClick={handleContinue} className="next-btn">
+        <button onClick={handleContinue} className="next-btn" disabled={isLoading}>
           <div></div>
-          Continuar
+          {isLoading ? "Carregando..." : "Continuar"}
         </button>
-
-        {showError && <p className="modal-message">Por favor, digite seu nome</p>}
+        {errorMessage && <p className="modal-message">{errorMessage}</p>}
       </Modal>
 
-      {/* Modal de Configurações */}
       <Modal
         isOpen={isConfigOpen}
-        title="Configurações"
+        onClose={() => setIsConfigOpen(false)}
         variant="config"
       >
         <div className="btn-grid">
