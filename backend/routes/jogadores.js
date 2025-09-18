@@ -5,7 +5,6 @@ const db = require('../db'); // Assumindo que o db.js está na pasta raiz
 // POST /jogadores - Rota para criar um novo jogador
 router.post('/', (req, res) => {
   const { nome } = req.body;
-
   if (!nome || nome.trim() === '') {
     return res.status(400).json({ error: 'O nome do jogador é obrigatório.' });
   }
