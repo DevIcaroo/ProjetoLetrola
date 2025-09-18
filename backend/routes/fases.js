@@ -2,19 +2,25 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
+// Validação para IDs numéricos.
+function validarIdJogador(id) {
+  const num = parseInt(id, 10);
+  return !isNaN(num) && num > 0;
+}
+
 router.get("/fase/:id_jogador/:mundo/:fase", (req, res) => {
   const { id_jogador, mundo, fase } = req.params;
   const mundoRequisitado = parseInt(mundo);
   const faseRequisitada = parseInt(fase);
 
-  if (
-    !id_jogador ||
-    isNaN(mundoRequisitado) ||
-    mundoRequisitado < 1 ||
-    isNaN(faseRequisitada) ||
-    faseRequisitada < 1
-  ) {
-    return res.status(400).json({ error: "Parâmetros inválidos." });
+    // Agora validamos o ID numérico
+  if (!validarIdJogador(id_jogador) || isNaN(mundoRequisitado) || isNaN(faseRequisitada)) {
+      return res.status(400).json({ error: "Parâmetros inválidos." });
+  }
+
+    // Lógica para novos jogadores que ainda não estão no banco de dados
+  if (faseRequisitada === 1) {
+      return res.json({ permitido: true, mensagem: "Acesso liberado para a fase 1." });
   }
 
   db.get(
