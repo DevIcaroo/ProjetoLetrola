@@ -1,84 +1,93 @@
-// testeApi.js (versão para testar o desbloqueio de 5 mundos)
+// testeApi.js (versão para testar a lógica de Jogo Salvo vs Novo Jogo)
 
+// Importa a função de criar jogadores
 import { criarJogador } from '../frontend/src/services/apiJogadores.js';
-import { salvarProgresso, buscarTotalEstrelas } from '../frontend/src/services/apiProgresso.js';
-
-// --- Lógica de Verificação de Acesso e Requisitos ---
-const REQUISITOS_MUNDO = {
-  1: 0,
-  2: 11,
-  3: 22,
-  4: 33,
-  5: 44,
-};
-
-async function verificarAcessoMundo(mundoId, id_jogador) {
-  const totalEstrelas = await buscarTotalEstrelas(id_jogador);
-  const estrelasNecessarias = REQUISITOS_MUNDO[mundoId];
-  console.log(`(Verificação: Jogador ${id_jogador} tem ${totalEstrelas} estrelas, precisa de ${estrelasNecessarias} para o Mundo ${mundoId})`);
-  return totalEstrelas >= estrelasNecessarias;
-}
-// --- Fim da Lógica ---
+// ✅ Importa as novas funções de progresso que vamos testar
+import { 
+    salvarProgresso, 
+    buscarTotalEstrelas,
+    verificarProgressoAtivo,
+    iniciarNovoJogo 
+} from '../frontend/src/services/apiProgresso.js';
 
 /**
- * Função helper para simular o progresso do jogador em várias fases.
+ * Função principal para executar os testes da lógica de Jogo Salvo.
  */
-async function adicionarProgresso(jogadorId, mundo, faseInicial, numFases, estrelasPorFase = 3) {
-  console.log(`\n-> Adicionando progresso: ${numFases * estrelasPorFase} estrelas no Mundo ${mundo}...`);
-  for (let i = 0; i < numFases; i++) {
-    const faseAtual = faseInicial + i;
-    await salvarProgresso(jogadorId, mundo, faseAtual, estrelasPorFase);
-  }
-  console.log('✅ Progresso salvo.');
-}
-
-/**
- * Função principal para executar todos os testes.
- */
-async function executarTestesDeMundos() {
-  console.log('--- Iniciando Testes Completos de Desbloqueio de Mundos ---');
+async function executarTestesDeJogoSalvo() {
+  console.log('--- Iniciando Testes de Jogo Ativo vs Arquivado ---');
   let jogador;
 
   try {
-    // SETUP: Criar um jogador novo
-    const nomeJogadorUnico = `explorador_${Date.now().toString().slice(-6)}`;
+    // --- SETUP: Criar um jogador de teste ---
+    const nomeJogadorUnico = `jogador_${Date.now().toString().slice(-7)}`;
     console.log(`\n[SETUP] Criando jogador: "${nomeJogadorUnico}"`);
     jogador = await criarJogador(nomeJogadorUnico);
     console.log('✅ Jogador criado com ID:', jogador.id);
 
-    // --- TESTE MUNDO 2 ---
-    console.log('\n[TESTE] Verificando desbloqueio do Mundo 2...');
-    if (await verificarAcessoMundo(2, jogador.id)) throw new Error('Mundo 2 liberado indevidamente.');
-    console.log('OK! Mundo 2 bloqueado.');
-    await adicionarProgresso(jogador.id, 1, 1, 4); // Adiciona 12 estrelas (4 fases * 3 estrelas)
-    if (!(await verificarAcessoMundo(2, jogador.id))) throw new Error('Mundo 2 não foi liberado.');
-    console.log('✅ SUCESSO! Mundo 2 desbloqueado.');
+    // --- CENÁRIO 1: Primeira vez jogando ---
+    console.log('\n--- Cenário 1: Primeira Jogatina ---');
 
-    // --- TESTE MUNDO 3 ---
-    console.log('\n[TESTE] Verificando desbloqueio do Mundo 3...');
-    if (await verificarAcessoMundo(3, jogador.id)) throw new Error('Mundo 3 liberado indevidamente.');
-    console.log('OK! Mundo 3 bloqueado.');
-    await adicionarProgresso(jogador.id, 1, 5, 4); // Adiciona mais 12 estrelas (total 24)
-    if (!(await verificarAcessoMundo(3, jogador.id))) throw new Error('Mundo 3 não foi liberado.');
-    console.log('✅ SUCESSO! Mundo 3 desbloqueado.');
+    console.log('\n[TESTE 1.1] Verificando se existe progresso ativo (esperado: false)');
+    let temProgresso = await verificarProgressoAtivo(jogador.id);
+    if (temProgresso) {
+      throw new Error('FALHA: Jogador novo não deveria ter progresso ativo.');
+    }
+    console.log('✅ SUCESSO! Nenhum progresso ativo encontrado.');
 
-    // --- TESTE MUNDO 4 ---
-    console.log('\n[TESTE] Verificando desbloqueio do Mundo 4...');
-    if (await verificarAcessoMundo(4, jogador.id)) throw new Error('Mundo 4 liberado indevidamente.');
-    console.log('OK! Mundo 4 bloqueado.');
-    await adicionarProgresso(jogador.id, 1, 9, 4); // Adiciona mais 12 estrelas (total 36)
-    if (!(await verificarAcessoMundo(4, jogador.id))) throw new Error('Mundo 4 não foi liberado.');
-    console.log('✅ SUCESSO! Mundo 4 desbloqueado.');
+    console.log('\n[TESTE 1.2] Jogador joga e salva 9 estrelas...');
+    await salvarProgresso(jogador.id, 1, 1, 3);
+    await salvarProgresso(jogador.id, 1, 2, 3);
+    await salvarProgresso(jogador.id, 1, 3, 3);
+    
+    console.log('\n[TESTE 1.3] Verificando total de estrelas (esperado: 9)');
+    let totalEstrelas = await buscarTotalEstrelas(jogador.id);
+    if (totalEstrelas !== 9) {
+      throw new Error(`FALHA: Total de estrelas incorreto. Esperado: 9, Recebido: ${totalEstrelas}`);
+    }
+    console.log(`✅ SUCESSO! Total de 9 estrelas encontrado.`);
 
-    // --- TESTE MUNDO 5 ---
-    console.log('\n[TESTE] Verificando desbloqueio do Mundo 5...');
-    if (await verificarAcessoMundo(5, jogador.id)) throw new Error('Mundo 5 liberado indevidamente.');
-    console.log('OK! Mundo 5 bloqueado.');
-    await adicionarProgresso(jogador.id, 1, 13, 4); // Adiciona mais 12 estrelas (total 48)
-    if (!(await verificarAcessoMundo(5, jogador.id))) throw new Error('Mundo 5 não foi liberado.');
-    console.log('✅ SUCESSO! Mundo 5 desbloqueado.');
+    console.log('\n[TESTE 1.4] Verificando novamente se existe progresso ativo (esperado: true)');
+    temProgresso = await verificarProgressoAtivo(jogador.id);
+    if (!temProgresso) {
+      throw new Error('FALHA: Jogador com progresso salvo deveria ter um jogo ativo.');
+    }
+    console.log('✅ SUCESSO! Progresso ativo encontrado.');
 
-    console.log('\n\n--- TODOS OS TESTES DE DESBLOQUEIO PASSARAM COM SUCESSO! ---');
+    // --- CENÁRIO 2: Jogador decide começar um "Novo Jogo" ---
+    console.log('\n--- Cenário 2: Iniciando um Novo Jogo ---');
+
+    console.log('\n[TESTE 2.1] Arquivando o progresso antigo...');
+    const resultadoNovoJogo = await iniciarNovoJogo(jogador.id);
+    console.log(`✅ SUCESSO! ${resultadoNovoJogo.message}`);
+    
+    console.log('\n[TESTE 2.2] Verificando se ainda existe progresso ativo (esperado: false)');
+    temProgresso = await verificarProgressoAtivo(jogador.id);
+    if (temProgresso) {
+      throw new Error('FALHA: Progresso não foi arquivado corretamente.');
+    }
+    console.log('✅ SUCESSO! Nenhum progresso ativo encontrado após reiniciar.');
+
+    console.log('\n[TESTE 2.3] Verificando o total de estrelas do jogo ATIVO (esperado: 0)');
+    totalEstrelas = await buscarTotalEstrelas(jogador.id);
+    if (totalEstrelas !== 0) {
+      throw new Error(`FALHA: Total de estrelas deveria ser 0. Recebido: ${totalEstrelas}`);
+    }
+    console.log('✅ SUCESSO! Total de estrelas do jogo ativo foi zerado.');
+
+    // --- CENÁRIO 3: Segunda vez jogando ---
+    console.log('\n--- Cenário 3: Segunda Jogatina ---');
+    console.log('\n[TESTE 3.1] Jogador joga novamente e salva 6 estrelas...');
+    await salvarProgresso(jogador.id, 1, 1, 3);
+    await salvarProgresso(jogador.id, 1, 2, 3);
+
+    console.log('\n[TESTE 3.2] Verificando o novo total de estrelas (esperado: 6)');
+    totalEstrelas = await buscarTotalEstrelas(jogador.id);
+    if (totalEstrelas !== 6) {
+      throw new Error(`FALHA: Total de estrelas da nova jogatina incorreto. Esperado: 6, Recebido: ${totalEstrelas}`);
+    }
+    console.log(`✅ SUCESSO! Novo total de 6 estrelas encontrado.`);
+
+    console.log('\n\n--- TODOS OS TESTES DE "NOVO JOGO" PASSARAM COM SUCESSO! ---');
 
   } catch (erro) {
     console.error('\n--- UM TESTE FALHOU! ---');
@@ -88,4 +97,5 @@ async function executarTestesDeMundos() {
   }
 }
 
-executarTestesDeMundos();
+// Executa a função de testes
+executarTestesDeJogoSalvo();
