@@ -3,65 +3,63 @@ import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal.jsx";
 import { buscarJogador, criarJogador } from "../services/apiJogadores.js";
+import { verificarProgressoAtivo, iniciarNovoJogo } from "../services/apiProgresso.js";
 
 function Home() {
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [modalStep, setModalStep] = useState(0); // 0: Fechado, 1: Opções, 2: Nome
+  const [isConfigOpen, setIsConfigOpen] = useState("")
   const [nomeJogador, setNomeJogador] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isNewGame, setIsNewGame] = useState(false);
 
-  const handleStart = () => {
-    setIsModalOpen(true);
-    setErrorMessage("");
-    setNomeJogador("");
+  const handleStart = () => setModalStep(1);
+
+  const handleChoice = (isNew) => {
+    setIsNewGame(isNew);
+    setModalStep(2);
   };
 
-  const handleContinue = async () => {
+  const handleLoginOrCreate = async () => {
     if (nomeJogador.trim() === "") {
       setErrorMessage("Por favor, digite seu nome");
       return;
     }
-
     setIsLoading(true);
     setErrorMessage("");
-
-    let jogador;
-    try {
-      // Tenta buscar o jogador para obter o objeto { id, nome }
-      jogador = await buscarJogador(nomeJogador);
-      console.log("Jogador encontrado, continuando...");
-    } catch (error) {
-      // Se não encontrar, cria um novo jogador para obter o objeto { id, nome }
-      if (error.message.includes("Jogador não encontrado")) {
-        try {
-          console.log("Jogador não encontrado, criando um novo...");
-          jogador = await criarJogador(nomeJogador);
-        } catch (createError) {
-          setErrorMessage(createError.message);
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        // Lida com outros erros (ex: nome já em uso, falha de rede)
-        setErrorMessage(error.message);
-        setIsLoading(false);
-        return;
-      }
-    }
     
-    // MUDANÇA: Navega passando o objeto 'jogador' completo ({ id, nome }) no estado.
-    // Isso garante que as próximas telas terão acesso tanto ao ID quanto ao nome.
-    navigate("/mapa-do-jogo", { state: { jogador } });
-    setIsLoading(false);
+    try {
+      let jogador = await buscarJogador(nomeJogador).catch(async (err) => {
+        if (err.message.includes("Jogador não encontrado")) {
+          return await criarJogador(nomeJogador);
+        }
+        throw err;
+      });
+
+      if (isNewGame) {
+        await iniciarNovoJogo(jogador.id);
+      }
+      navigate("/mapa-do-jogo", { state: { jogador } });
+
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const closeModal = () => {
+    if (isLoading) return;
+    setModalStep(0);
+    setErrorMessage("");
+    setNomeJogador("");
+  };
+
 
   return (
     <section className="home-section">
-      <div
-        className={`home-container ${isModalOpen || isConfigOpen ? "blur" : ""}`}
-      >
+        <div className={`home-container ${modalStep > 0 ? "blur" : ""}`}>
         <img src="/background forest.svg" alt="plano-de-fundo" className="home-bg" />
         <img src="/logo.svg" alt="logo-letrola" className="logo" />
         <img src="./monkey.svg" alt="macaco" className="monkey" />
@@ -86,9 +84,22 @@ function Home() {
         </button>
       </div>
 
+      <Modal isOpen={modalStep === 1} 
+      onClose={closeModal} 
+      hideBackground={true}>
+        <div className="choice-buttons">
+          <button className="btn-choice new-game" onClick={() => handleChoice(true)}>
+            Novo Jogo
+          </button>
+          <button className="btn-choice continue-game" onClick={() => handleChoice(false)}>
+            Continuar Jogo
+          </button>
+        </div>
+      </Modal>
+      
       <Modal
-        isOpen={isModalOpen}
-        onClose={() => !isLoading && setIsModalOpen(false)}
+        isOpen={modalStep === 2}
+        onClose={closeModal}
         variant="default"
       >
         <p>Digite seu nome </p>
@@ -100,7 +111,7 @@ function Home() {
           onChange={(e) => setNomeJogador(e.target.value)}
           disabled={isLoading}
         />
-        <button onClick={handleContinue} className="next-btn" disabled={isLoading}>
+        <button onClick={handleLoginOrCreate} className="next-btn" disabled={isLoading}>
           <div></div>
           {isLoading ? "Carregando..." : "Continuar"}
         </button>
@@ -109,7 +120,7 @@ function Home() {
 
       <Modal
         isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
+        onClose={closeModal}
         variant="config"
       >
         <div className="btn-grid">
