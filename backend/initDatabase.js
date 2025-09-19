@@ -22,13 +22,13 @@ function criarTabelas() {
     db.run(`
       CREATE TABLE IF NOT EXISTS progresso (
         id INTEGER PRIMARY KEY AUTOINCREMENT,      -- ID único para cada registo de progresso
-        id_jogador INTEGER NOT NULL,             -- Liga o progresso a um jogador da tabela 'jogadores'
-        mundo INTEGER NOT NULL,                  -- O número do mundo (ex: 1, 2, 3)
-        fase INTEGER NOT NULL,                   -- O número da fase (ex: 1, 2, 3)
-        estrelas INTEGER DEFAULT 0,              -- Quantidade de estrelas ganhas (0 a 3)
-        tempo_gasto INTEGER,                     -- Tempo em segundos que o jogador levou
+        id_jogador INTEGER NOT NULL,               -- Liga o progresso a um jogador da tabela 'jogadores'
+        mundo INTEGER NOT NULL,                    -- O número do mundo (ex: 1, 2, 3)
+        fase INTEGER NOT NULL,                     -- O número da fase (ex: 1, 2, 3)
+        estrelas INTEGER DEFAULT 0,                -- Quantidade de estrelas ganhas (0 a 3)
+        tempo_gasto INTEGER,                       -- Tempo em segundos que o jogador levou
         data TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Data e hora em que o progresso foi salvo
-        ativo INTEGER NOT NULL DEFAULT 1,        -- 1 significa que é o jogo atual, 0 significa que é um jogo arquivado
+        ativo INTEGER NOT NULL DEFAULT 1,          -- 1 para ativo, 0 para arquivado
         UNIQUE(id_jogador, mundo, fase, ativo),    -- Impede registos duplicados para o mesmo nível no jogo ativo
         FOREIGN KEY (id_jogador) REFERENCES jogadores(id) -- Cria a relação com a tabela 'jogadores'
       )
