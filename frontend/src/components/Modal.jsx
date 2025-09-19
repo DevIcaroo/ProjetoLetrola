@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/Modal.css";
 
-function Modal({ isOpen, onClose, title, children, variant = "default" }) {
+function Modal({ isOpen, onClose, title, children, variant = "default", hideBackground = false }) {
   if (!isOpen) return null;
 
   // CORREÇÃO: Os caminhos agora são absolutos a partir da raiz (/)
@@ -23,13 +23,14 @@ function Modal({ isOpen, onClose, title, children, variant = "default" }) {
   : {};
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <img
-        src={backgrounds[variant]}
-        alt="fundo-modal"
-        className="modal-bg"
+    <div className={`modal-overlay ${hideBackground ? 'no-bg' : ''}`} onClick={onClose}>
+      {!hideBackground && (
+        <img 
+        src={backgrounds[variant]} 
+        alt="fundo-modal" className="modal-bg"
         style={{ ...imgStyle, ...animationStyle }}
-      />
+        />
+      )}
       <div
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
