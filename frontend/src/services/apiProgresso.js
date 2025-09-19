@@ -1,21 +1,68 @@
-// A URL base da API
+// Define a URL base para todas as chamadas à API, facilitando futuras alterações.
 const BASE_URL = 'http://localhost:3000';
 
 /**
- * Salva ou atualiza o progresso do jogador.
+ * [NOVA FUNÇÃO] Verifica se um jogador tem um progresso ativo para continuar.
+ * É a primeira função a ser chamada após o login para decidir qual botão mostrar.
  * @param {number} jogadorId - O ID numérico do jogador.
- * @param {number} mundo
- * @param {number} fase
- * @param {number} estrelas
- * @param {number} tempo_gasto
- * @returns {Promise<object>}
+ * @returns {Promise<boolean>} Retorna `true` se houver progresso ativo, `false` caso contrário.
  */
-export async function salvarProgresso(jogadorId, mundo, fase, estrelas, tempo_gasto) {
+export async function verificarProgressoAtivo(jogadorId) {
+  // Chama a rota GET /progresso/status/:id_jogador que criamos no backend.
   try {
-    const response = await fetch(`${BASE_URL}/salvar-progresso`, {
+    const response = await fetch(`${BASE_URL}/progresso/status/${jogadorId}`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro ao verificar progresso.');
+    }
+    // O backend retorna um objeto { tem_progresso: true } ou { tem_progresso: false }.
+    return data.tem_progresso;
+  } catch (error) {
+    console.error('Erro na requisição para verificar progresso:', error);
+    // Em caso de erro de comunicação com a API, assume-se que não há jogo para continuar.
+    return false;
+  }
+}
+
+/**
+ * [NOVA FUNÇÃO] Inicia um novo jogo, arquivando todo o progresso ativo anterior.
+ * @param {number} jogadorId - O ID numérico do jogador.
+ * @returns {Promise<object>} A mensagem de sucesso do servidor.
+ */
+export async function iniciarNovoJogo(jogadorId) {
+  // Chama a rota POST /progresso/novo-jogo.
+  try {
+    const response = await fetch(`${BASE_URL}/progresso/novo-jogo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      // MUDANÇA: O backend agora espera o ID numérico do jogador.
+      body: JSON.stringify({ id_jogador: jogadorId }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro ao iniciar novo jogo.');
+    }
+    return data;
+  } catch (error) {
+    console.error('Erro na requisição para iniciar novo jogo:', error);
+    throw error;
+  }
+}
+
+/**
+ * Salva ou atualiza o progresso do jogador numa fase específica do jogo ATIVO.
+ * @param {number} jogadorId - O ID numérico do jogador.
+ * @param {number} mundo - O número do mundo.
+ * @param {number} fase - O número da fase.
+ * @param {number} estrelas - As estrelas ganhas (0-3).
+ * @param {number} tempo_gasto - O tempo em segundos.
+ * @returns {Promise<object>} A mensagem de sucesso do servidor.
+ */
+export async function salvarProgresso(jogadorId, mundo, fase, estrelas, tempo_gasto) {
+  // Chama a rota POST /progresso/salvar-progresso.
+  try {
+    const response = await fetch(`${BASE_URL}/progresso/salvar-progresso`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id_jogador: jogadorId, mundo, fase, estrelas, tempo_gasto }),
     });
     const data = await response.json();
@@ -30,15 +77,15 @@ export async function salvarProgresso(jogadorId, mundo, fase, estrelas, tempo_ga
 }
 
 /**
- * Busca a fase mais avançada que o jogador pode acessar em um mundo.
+ * Busca a fase mais avançada que o jogador pode aceder num mundo do seu jogo ATIVO.
  * @param {number} jogadorId - O ID numérico do jogador.
- * @param {number} mundo_id
- * @returns {Promise<number>}
+ * @param {number} mundoId - O ID do mundo a ser verificado.
+ * @returns {Promise<number>} O número da próxima fase a ser jogada.
  */
-export async function buscarFaseAtual(jogadorId, mundo_id) {
+export async function buscarFaseAtual(jogadorId, mundoId) {
+  // Chama a rota GET /progresso/:id_jogador/:mundo_id.
   try {
-    // MUDANÇA: A URL agora usa o ID numérico do jogador.
-    const response = await fetch(`${BASE_URL}/progresso/${jogadorId}/${mundo_id}`);
+    const response = await fetch(`${BASE_URL}/progresso/${jogadorId}/${mundoId}`);
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.error || 'Erro ao buscar fase atual.');
@@ -46,22 +93,42 @@ export async function buscarFaseAtual(jogadorId, mundo_id) {
     return data.fase_atual;
   } catch (error) {
     console.error('Erro na requisição para buscar fase atual:', error);
-    // Retorna 1 como padrão em caso de erro para não travar o jogo
+    // Retorna 1 como padrão em caso de erro para não bloquear o jogo.
     return 1;
   }
 }
 
 /**
- * Busca o número de estrelas de um jogador em uma fase específica.
+ * Busca o TOTAL de estrelas do jogo ATIVO de um jogador.
  * @param {number} jogadorId - O ID numérico do jogador.
- * @param {number} mundo_id
- * @param {number} fase
- * @returns {Promise<number>}
+ * @returns {Promise<number>} O total de estrelas acumuladas.
  */
-export async function buscarEstrelas(jogadorId, mundo_id, fase) {
+export async function buscarTotalEstrelas(jogadorId) {
+    // Chama a rota GET /progresso/total-estrelas/:id_jogador.
+    try {
+      const response = await fetch(`${BASE_URL}/progresso/total-estrelas/${jogadorId}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao buscar total de estrelas.');
+      }
+      return data.total_estrelas || 0;
+    } catch (error) {
+      console.error('Erro na requisição para buscar total de estrelas:', error);
+      return 0;
+    }
+}
+
+/**
+ * Busca o número de estrelas de um jogador numa fase específica do jogo ATIVO.
+ * @param {number} jogadorId - O ID numérico do jogador.
+ * @param {number} mundoId - O ID do mundo.
+ * @param {number} faseId - O ID da fase.
+ * @returns {Promise<number>} O número de estrelas (0-3).
+ */
+export async function buscarEstrelas(jogadorId, mundoId, faseId) {
+  // Chama a rota GET /progresso/estrelas/:id_jogador/:mundo/:fase.
   try {
-    // MUDANÇA: A URL agora usa o ID numérico do jogador.
-    const response = await fetch(`${BASE_URL}/estrelas/${jogadorId}/${mundo_id}/${fase}`);
+    const response = await fetch(`${BASE_URL}/progresso/estrelas/${jogadorId}/${mundoId}/${faseId}`);
     const data = await response.json();
     if (!response.ok) {
       throw new Error('Erro ao buscar estrelas.');
@@ -69,27 +136,6 @@ export async function buscarEstrelas(jogadorId, mundo_id, fase) {
     return data.estrelas || 0;
   } catch (error) {
     console.error('Erro na requisição para buscar estrelas:', error);
-    // Retorna 0 como padrão em caso de erro
     return 0;
   }
 }
-
-/**
- * Busca o total de estrelas de um jogador em um mundo específico.
- * @param {number} jogadorId - O ID numérico do jogador.
- * @param {number} mundo_id
- * @returns {Promise<number>}
- */
-export async function buscarTotalEstrelas(jogadorId, mundo_id) {
-    try {
-      const response = await fetch(`${BASE_URL}/progresso/total-estrelas/${jogadorId}/${mundo_id}`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error('Erro ao buscar total de estrelas.');
-      }
-      return data.total_estrelas || 0;
-    } catch (error) {
-      console.error('Erro na requisição para buscar total de estrelas:', error);
-      return 0; // Retorna 0 em caso de erro
-    }
-  }
