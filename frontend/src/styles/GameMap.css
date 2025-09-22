@@ -1,0 +1,293 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.map-section{
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+.map{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+.greeting{
+    width: fit-content;
+    display: flex;
+    text-align: center;
+    position: absolute;
+    top: 2%;
+    left: 2%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.greeting h1{
+    font-size: 1.7rem;
+    font-family: 'Bangers', cursive;
+    color: white;
+    width: 8rem;
+}
+
+.stars-count img{
+    width: 10rem;
+    
+}
+
+.stars-count{
+    width: 10rem;
+    height: 10rem;
+}
+
+.stars-count p{
+    width: 5rem;
+    font-size: 1.6rem;
+    font-family: 'Bangers', cursive;
+    font-weight: normal;
+    color: white;
+    position: absolute;
+    z-index: 3;
+    top: 42%;
+    left: 22%;
+}
+
+.settings-btn-right{
+    position: absolute;
+    z-index: 2;
+    top: 2%;
+    left: 90%;
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 10px;
+    background-color: #FABA00;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    border-bottom: #9F5704 5px solid;
+    border-left: #9F5704 5px solid;
+}
+
+.settings-btn-right div{
+    position: absolute;
+    width: 100%;
+    height: 30px;
+    border-radius: 10px;
+    background-color: #ffffff48;
+    bottom: 50%;
+}
+
+.settings-btn-right img{
+    width: 75%;
+    z-index: 1;
+    position: relative;
+}
+
+.levels-container{
+    width: 100%;
+    height: 100dvh;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.levels-container button{
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.level{
+    position: relative;
+    text-align: center;
+    width: fit-content;
+}
+
+.score-display-container.map {
+    position: absolute;
+    bottom: 40%;
+    left: 40%;
+    transform: translateX(-50%);
+    width: auto;
+    gap: 2px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.score-display-container.map .star-icon {
+  width: 20px; /* Tamanho menor para o mapa */
+  height: 20px;
+}
+
+/* Adicione este CSS ao seu arquivo GameMap.css para estilizar a sobreposição */
+.historia-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  color: white;
+  text-align: center;
+  flex-direction: column;
+}
+
+.historia-container {
+  width: 100dvw;
+  height: 100dvh;
+  padding: 0.5rem;
+}
+
+.historia-imagem {
+  width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.historia-dialogo {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+    font-size: 1.2rem;
+    position: absolute;
+    top: 75%;
+    left: 25%;
+    width: 50%;
+    background: #00000099;
+    padding: 0.5rem;
+    text-transform: uppercase;
+}
+
+.historia-btn {
+  /* Estilize seu botão como preferir */
+  position: absolute;
+  top: 87%;
+  left: 67%;
+  padding: 10px 30px;
+  border-radius: 50px;
+  border: none;
+  background-color: #FF2526;
+  color: white;
+  font-size: 1.5rem;
+  font-family: "Bangers", system-ui;
+  cursor: pointer;
+}
+
+.level p{
+    font-size: 1.8rem;
+    font-family: 'Bangers', cursive;
+    font-weight: bold;
+    color: white;
+    position: relative;
+    top: 3.1rem;
+    z-index: 2;
+}
+
+.level img{
+    width: -webkit-fill-available;
+    height: 90px;  
+}
+
+.level-1{
+    top: 80%;
+    left: 55%;
+    cursor: pointer;
+}
+
+.level-2{
+    top: 55%;
+    left: 20%;
+    cursor: pointer;
+}
+
+.level-3{
+    top: 35%;
+    right: 25%;
+    cursor: pointer;
+}
+
+.level-4{
+    top: 8%;
+    right: 30%;
+    cursor: pointer;
+}
+
+.level-5{
+    bottom: 0%;
+    right: 36%;
+    cursor: pointer;
+}
+
+.locked{
+    filter: grayscale(100%);
+}
+
+.modal-overlay {
+  position: fixed; /* fixa na tela inteira, não depende do pai */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5); /* fundo escuro */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* garante que fica acima de tudo */
+}
+
+.modal-content p{
+    font-size: 1.4rem;
+    width: 8rem;
+    text-align: center;
+}
+
+.close-btn{
+    display: block;
+}
+
+@media (max-width: 600px){
+    .settings-btn-right{
+        left: 80%;
+    }
+    .level img{
+        width: -webkit-fill-available;
+    }
+
+    .level-1{
+        left: 60%;
+    }
+
+    .level-2{
+        left: 10%;
+    }
+
+    .level-3{
+        top: 23%;
+        right: 35%;
+    }
+
+    .level-4{
+        left: 0%;
+        top: 15%;
+    }
+
+    .level-5{
+        right: 25%;
+    }
+}

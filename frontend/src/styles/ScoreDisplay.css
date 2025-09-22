@@ -1,0 +1,17 @@
+.score-display-container {
+  display: flex; /* Para que as estrelas fiquem uma ao lado da outra */
+  gap: 5px; /* Espaçamento entre as estrelas */
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px; /* Ou onde você quiser posicionar */
+}
+
+.score-display-container .star-icon {
+  width: 40px; /* Ajuste o tamanho da estrela conforme necessário */
+  height: 40px;
+  transition: filter 0.3s ease-in-out; /* Adiciona uma transição suave para o grayscale */
+}
+
+.score-display-container .star-icon.grayscale {
+  filter: grayscale(100%);
+}

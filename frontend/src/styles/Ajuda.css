@@ -1,0 +1,101 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    height: 100vh;
+    width: 100vw;
+    overflow-y: auto;
+}
+
+.ajuda-section {
+    overflow-y: auto;
+    background: #51D3CC; /* Um fundo azul claro, como o do mapa */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    font-family: 'Fredoka', sans-serif;
+}
+
+.ajuda-container {
+    background-color: white;
+    padding: 2rem 3rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    max-width: 800px;
+    text-align: center;
+    border: 5px solid #FABA00;
+}
+
+.ajuda-logo {
+    width: 250px;
+    margin-bottom: 1rem;
+}
+
+.ajuda-container h1 {
+    font-family: 'Bangers', cursive;
+    font-size: 3rem;
+    color: #FF6263;
+    margin-bottom: 0.5rem;
+}
+
+.ajuda-subtitulo {
+    font-size: 1.2rem;
+    color: #763918;
+    margin-bottom: 2rem;
+}
+
+.ajuda-topico {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.ajuda-topico h2 {
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: #9F5704;
+    margin-bottom: 0.5rem;
+}
+
+.ajuda-topico p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #763918;
+}
+
+.ajuda-topico strong {
+    color: #FE4590;
+}
+
+.btn-voltar {
+    position: relative;
+    margin-top: 2rem;
+    padding: 12px 40px;
+    border-radius: 30px;
+    border: none;
+    background-color: #FF2526;
+    color: white;
+    font-size: 1.5rem;
+    font-family: "Bangers", system-ui;
+    cursor: pointer;
+    border-bottom: #DA1213 6px solid;
+    border-left: #DA1213 6px solid;
+    transition: transform 0.2s;
+}
+
+.btn-voltar:hover {
+    transform: translateY(-3px);
+}
+
+.btn-voltar div {
+    position: absolute;
+    width: 80%;
+    height: 20px;
+    border-radius: 20px;
+    background-color: #ffffff48;
+    left: 10%;
+    bottom: 45%;
+}
