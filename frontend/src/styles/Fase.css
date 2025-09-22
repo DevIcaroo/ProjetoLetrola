@@ -547,9 +547,9 @@ header{
   }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 499px) {
   .puzzle-container{
-    padding-top: 22rem;
+    padding-top: 23rem;
   }
 
   .balao-dicas {
@@ -560,5 +560,15 @@ header{
 
   .baloon{
     width: 24rem;
+  }
+
+  .fruit-slots{
+    gap: 4rem;
+  }
+}
+
+@media (max-width: 399px){
+  .puzzle-container{
+    padding-top: 20rem;
   }
 }
