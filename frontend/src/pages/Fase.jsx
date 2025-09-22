@@ -85,6 +85,7 @@ function Fase () {
     const [puzzleError, setPuzzleError] = useState(false);
     const [colisaoAtiva, setColisaoAtiva] = useState(false);
     const [itemEmJogo, setItemEmJogo] = useState(null);
+    const [tempoDoItemExibido, setTempoDoItemExibido] = useState("00:00");
     const [dicaExibida, setDicaExibida] = useState("Colete as frutas para aprender a soletrar!");
     
     const gameLoopRef = useRef();
@@ -328,9 +329,26 @@ function Fase () {
         }
     };
 
-    const handleTempoTick = (tempoMs) => { setTempoExibido(formatTime(tempoMs, 'ms')); setTempoDecorridoParaScore(tempoMs); };
-    const handleItemTempoTick = (tempoMs) => { /* ... Lógica de tempo do item ... */ };
-    const handleDicaLiberada = (nivelDica, itemId) => { /* ... Lógica de Dica ... */ };
+    // --- LÓGICA DE FASE ---
+
+    const handleTempoTick = (tempoMs) => {
+      setTempoExibido(formatTime(tempoMs, 'ms'));
+      setTempoDecorridoParaScore(tempoMs);
+    };
+
+    const handleItemTempoTick = (tempoMs) => {
+      setTempoDoItemExibido(formatTime(tempoMs, 'ms'));
+    };
+    
+    const handleDicaLiberada = (nivelDica, itemId) => {
+      const item = itemEmJogo;
+      if (!item || item.id !== itemId) return;
+      const dicaTexto = nivelDica === 1 ? item.dica1 : item.dica2;
+      if (dicaTexto) {
+        setDicaExibida(dicaTexto);
+        setDicasTotaisUsadas(prev => prev + 1);
+      }
+    };
 
     const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
     const handleRetry = () => inicializarFase();
@@ -399,6 +417,7 @@ function Fase () {
               </div>
             </div>
           </Modal>
+
           <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
             <div className="btn-level-grid">
               <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
@@ -408,6 +427,7 @@ function Fase () {
               <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}><div></div>fechar</button>
             </div>
           </Modal>
+
           <Modal isOpen={isFeedbackOpen} onClose={handleVoltarAoMapa} title={resultadoFinal.title} variant="feedback">
             <div className="feedback-content">
               <div className="feedback-stats">
@@ -424,6 +444,7 @@ function Fase () {
               </div>
             </div>
           </Modal>
+
           <Modal isOpen={isFimDoMundoOpen} onClose={handleVoltarAoMapa} title="Fim do Mundo!" variant="feedback">
                 <div className="feedback-content">
                     <div className="feedback-stats">
@@ -438,6 +459,7 @@ function Fase () {
                     </div>
                 </div>
             </Modal>
+
         </section>
       );
 };
