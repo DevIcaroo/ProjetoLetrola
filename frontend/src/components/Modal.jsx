@@ -10,7 +10,9 @@ function Modal({ isOpen, onClose, title, children, variant = "default", hideBack
     default: "/modal.svg",
     config: "/modal-yellow.svg",
     feedback: "/modal-green.svg",
-    puzzle: "/light-puzzle.svg" 
+    puzzle: "/light-puzzle.svg",
+    faseInfo: "/modal-fase-info.svg",
+    worldConfig: "/modal-world.svg"
   };
 
   const imgStyle =
