@@ -166,7 +166,23 @@ router.get("/:id_jogador/:mundo_id", (req, res) => {
             return res.json({ fase_atual: row.fase_atual });
         }
       )
+
+      db.get(
+        `SELECT estrelas FROM progresso WHERE id_jogador = ? AND mundo = ? AND fase = ? AND ativo = 1`,
+        [jogadorId, mundoNum, row.fase_atual],
+        (err, estrelasRow) => {
+            if (err) {
+                return res.status(500).json({ error: "Erro ao verificar estrelas." });
+            }
+            // MUDANÇA: Garante que, ao concluir a fase 5, a fase_atual se torne 6.
+            if (estrelasRow && estrelasRow.estrelas > 0) {
+                return res.json({ fase_atual: row.fase_atual + 1 });
+            }
+            return res.json({ fase_atual: row.fase_atual });
+        }
+      )
     }
+
   );
 });
 
