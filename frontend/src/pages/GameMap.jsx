@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/GameMap.css";
 import Modal from "../components/Modal";
@@ -11,11 +11,8 @@ function GameMap() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // MUDANÇA: Recebe o objeto 'jogador' e o 'mundo_id' do estado da navegação.
-  // Se 'mundo_id' não for passado, ele assume o valor padrão 1.
   const { jogador, mundo_id = 1 } = location.state || {};
 
-  // Carrega os dados do mundo correto. Se o mundo não existir, usa o mundo 1.
   const dadosMundo = mundos[mundo_id] || mundos[1];
   const levels = [1, 2, 3, 4, 5];
 
@@ -24,38 +21,54 @@ function GameMap() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isWorldConfigOpen, setIsWorldConfigOpen] = useState(false);
   const [indiceHistoria, setIndiceHistoria] = useState(0);
-  // Controla se a história deve ser mostrada. O 'sessionStorage' evita que ela reapareça ao voltar de uma fase.
   const [mostrarHistoria, setMostrarHistoria] = useState(!sessionStorage.getItem(`historia_mundo_${mundo_id}_vista`));
+  
+  // NOVO ESTADO: Armazena o nível de desbloqueio dos mundos
+  const [mundosDesbloqueados, setMundosDesbloqueados] = useState({ 1: true });
+
+  // MUDANÇA: A lógica foi movida para um useCallback para ser usada no useEffect
+  const buscarDadosDoJogador = useCallback(async () => {
+    if (!jogador || !jogador.id) return;
+
+    // Busca o progresso do mundo atual (visível no mapa)
+    const faseAtual = await buscarFaseAtual(jogador.id, mundo_id);
+    setFaseMaisAlta(faseAtual);
+
+    const newStars = {};
+    for (const level of levels) {
+      newStars[level] = await buscarEstrelas(jogador.id, mundo_id, level);
+    }
+    setStarsPerLevel(newStars);
+
+    // Busca o progresso de TODOS os mundos para o modal de seleção
+    const statusMundos = { 1: true }; // Mundo 1 é sempre desbloqueado
+    for (const idMundo in mundos) {
+        if (idMundo > 1) {
+            const faseMaxMundoAnterior = await buscarFaseAtual(jogador.id, idMundo - 1);
+            // Um mundo é considerado concluído se a fase atual for maior que 5.
+            if (faseMaxMundoAnterior > 5) {
+                statusMundos[idMundo] = true;
+            }
+        }
+    }
+    setMundosDesbloqueados(statusMundos);
+
+  }, [jogador, mundo_id]);
 
   useEffect(() => {
     if (!jogador || !jogador.id) {
       navigate("/");
       return;
     }
-
-    const buscarDadosDoJogador = async () => {
-      // Usa jogador.id e o mundo_id dinâmico para as chamadas de API
-      const faseAtual = await buscarFaseAtual(jogador.id, mundo_id);
-      setFaseMaisAlta(faseAtual);
-
-      const newStars = {};
-      for (const level of levels) {
-        newStars[level] = await buscarEstrelas(jogador.id, mundo_id, level);
-      }
-      setStarsPerLevel(newStars);
-    };
-
     buscarDadosDoJogador();
-    // MUDANÇA: Adicionado 'mundo_id' ao array de dependências para recarregar os dados quando o mundo mudar.
-  }, [jogador, navigate, mundo_id]);
-
+  }, [jogador, navigate, mundo_id, buscarDadosDoJogador]);
 
   const handleLevelClick = async (level) => {
     try {
       const resultado = await verificarAcessoFase(jogador.id, mundo_id, level);
       if (resultado?.permitido) {
-        // MUDANÇA: A navegação agora usa o 'mundo_id' dinâmico.
         navigate(`/mundo/${mundo_id}/fase/${level}`, { state: { jogador } });
       } else {
         setModalMessage(resultado.mensagem || "Você ainda não pode acessar esta fase.");
@@ -68,11 +81,15 @@ function GameMap() {
     }
   };
 
+  const handleWorldChange = (novoMundoId) => {
+    navigate('/mapa-do-jogo', { state: { jogador, mundo_id: novoMundoId } });
+    setIsWorldConfigOpen(false);
+  };
+
   const handleProximoDialogo = () => {
     if (indiceHistoria < dadosMundo.historia.length - 1) {
       setIndiceHistoria(indiceHistoria + 1);
     } else {
-      // Marca a história como vista no sessionStorage para não mostrar novamente na mesma sessão.
       sessionStorage.setItem(`historia_mundo_${mundo_id}_vista`, 'true');
       setMostrarHistoria(false);
     }
@@ -118,6 +135,12 @@ function GameMap() {
           <img src="/Settings.svg" alt="Configurações" />
         </button>
 
+        <button className="world-btn-right" onClick={() => setIsWorldConfigOpen(true)}>
+          <div></div>
+          <img src="/World.svg" alt="Configurações" />
+        </button>
+
+
         <div className="levels-container">
           {levels.map((level) => {
             const isLocked = level > faseMaisAlta;
@@ -142,7 +165,7 @@ function GameMap() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Nível Bloqueado"
+        variant="faseInfo"
       >
         <p>{modalMessage}</p>
       </Modal>
@@ -156,6 +179,25 @@ function GameMap() {
           <button className="btn music-btn"> <div></div> música</button>
           <button className="btn effect-btn"> <div></div> efeitos</button>
           <button className="btn help-btn" onClick={() => navigate('/ajuda')}> <div></div> ajuda</button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isWorldConfigOpen}
+        onClose={() => setIsWorldConfigOpen(false)}
+        variant="worldConfig"
+      >
+        <div className="btn-grid-world">
+           {Object.keys(mundos).map(id => (
+            <button 
+              key={id}
+              className={`btn-world mundo-${id}-btn`}
+              onClick={() => handleWorldChange(parseInt(id))}
+              disabled={!mundosDesbloqueados[id]}
+            >
+              <div></div> {mundos[id].nome}
+            </button>
+          ))}
         </div>
       </Modal>
     </section>
