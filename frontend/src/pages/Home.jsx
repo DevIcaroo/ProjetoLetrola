@@ -3,12 +3,14 @@ import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal.jsx";
 import { buscarJogador, criarJogador } from "../services/apiJogadores.js";
-import { verificarProgressoAtivo, iniciarNovoJogo } from "../services/apiProgresso.js";
+// A importação de 'verificarProgressoAtivo' e 'iniciarNovoJogo' pode ser necessária
+// dependendo da lógica exata após o login, mas não para a correção do bug principal.
+import { iniciarNovoJogo } from "../services/apiProgresso.js";
 
 function Home() {
   const navigate = useNavigate();
-  const [modalStep, setModalStep] = useState(0); // 0: Fechado, 1: Opções, 2: Nome
-  const [isConfigOpen, setIsConfigOpen] = useState("")
+  const [modalStep, setModalStep] = useState(0);
+  const [isConfigOpen, setIsConfigOpen] = useState(false) // Corrigido para boolean
   const [nomeJogador, setNomeJogador] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,6 +23,10 @@ function Home() {
     setModalStep(2);
   };
 
+  /**
+   * ✅ [FUNÇÃO CORRIGIDA]
+   * Esta função agora tem lógicas separadas para 'Novo Jogo' e 'Continuar'.
+   */
   const handleLoginOrCreate = async () => {
     if (nomeJogador.trim() === "") {
       setErrorMessage("Por favor, digite seu nome");
@@ -30,19 +36,27 @@ function Home() {
     setErrorMessage("");
     
     try {
-      let jogador = await buscarJogador(nomeJogador).catch(async (err) => {
-        if (err.message.includes("Jogador não encontrado")) {
-          return await criarJogador(nomeJogador);
-        }
-        throw err;
-      });
-
+      let jogador;
+      
+      // --- FLUXO DE NOVO JOGO ---
       if (isNewGame) {
-        await iniciarNovoJogo(jogador.id);
+        // Tenta criar o jogador. Se o nome já existir, a API retornará um erro.
+        jogador = await criarJogador(nomeJogador);
+        console.log("Novo jogador criado:", jogador);
+        // Não precisamos de chamar iniciarNovoJogo aqui, pois é um jogador novo.
+
+      // --- FLUXO DE CONTINUAR JOGO ---
+      } else {
+        // Tenta buscar o jogador. Se não existir, a API retornará um erro.
+        jogador = await buscarJogador(nomeJogador);
+        console.log("Jogador encontrado:", jogador);
       }
+
+      // Se qualquer um dos fluxos acima for bem-sucedido, navega para o mapa.
       navigate("/mapa-do-jogo", { state: { jogador } });
 
     } catch (error) {
+      // Apanha qualquer erro (ex: nome já existe ou jogador não encontrado) e mostra-o.
       setErrorMessage(error.message);
     } finally {
       setIsLoading(false);
@@ -52,14 +66,14 @@ function Home() {
   const closeModal = () => {
     if (isLoading) return;
     setModalStep(0);
+    setIsConfigOpen(false); // Adicionado para fechar o modal de config também
     setErrorMessage("");
     setNomeJogador("");
   };
 
-
   return (
     <section className="home-section">
-        <div className={`home-container ${modalStep > 0 ? "blur" : ""}`}>
+        <div className={`home-container ${modalStep > 0 || isConfigOpen ? "blur" : ""}`}>
         <img src="/background forest.svg" alt="plano-de-fundo" className="home-bg" />
         <img src="/logo.svg" alt="logo-letrola" className="logo" />
         <img src="./monkey.svg" alt="macaco" className="monkey" />
@@ -120,7 +134,7 @@ function Home() {
 
       <Modal
         isOpen={isConfigOpen}
-        onClose={closeModal}
+        onClose={() => setIsConfigOpen(false)} // Modificado para fechar corretamente
         variant="config"
       >
         <div className="btn-grid">
