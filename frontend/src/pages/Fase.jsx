@@ -62,7 +62,6 @@ function Fase () {
     
     const mundo_id = parseInt(mundoId);
     const fase_id = parseInt(faseId);
-    const proximo_mundo_id = mundo_id + 1;
     const proxima_fase_id = fase_id + 1;
 
     // --- ESTADOS ---
@@ -72,10 +71,8 @@ function Fase () {
     const [dicasTotaisUsadas, setDicasTotaisUsadas] = useState(0);
     const [isConfigOpen, setIsConfigOpen] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-    const [isFimDoMundoOpen, setIsFimDoMundoOpen] = useState(false);
     const [tempoExibido, setTempoExibido] = useState("00:00");
     const [resultadoFinal, setResultadoFinal] = useState({ title: "", estrelas: 0, tempoConclusao: 0, proximaMeta: "" });
-    const [resultadoMundo, setResultadoMundo] = useState({ totalEstrelas: 0, desbloqueado: false, mensagem: "" });
     const [personagemPos, setPersonagemPos] = useState({ x: 100, y: 0, vy: 0 });
     const [direcaoPersonagem, setDirecaoPersonagem] = useState('direita');
     const [teclasPressionadas, setTeclasPressionadas] = useState({});
@@ -89,6 +86,7 @@ function Fase () {
     const [dicaExibida, setDicaExibida] = useState("Colete as frutas para aprender a soletrar!");
     
     const gameLoopRef = useRef();
+    const animationFrameRef = useRef(0);
 
     const handleFaseTermina = useCallback(async ({ tempoFinalMs, motivo }) => {
         if (estadoJogo === "finalizado") return;
@@ -109,43 +107,18 @@ function Fase () {
             console.error("Falha ao salvar o progresso:", error); 
         }
 
-        if (fase_id === 5) {
-            const totalEstrelasMundo = await buscarTotalEstrelas(jogador.id, mundo_id);
+        // CORREÇÃO 2: O modal de feedback agora é o mesmo para todas as fases.
+        // A lógica de fim de mundo foi movida para o GameMap.
+        setResultadoFinal({
+            title: estrelas > 0 ? "Fase Concluída!" : "Tempo Esgotado!",
+            estrelas,
+            tempoConclusao: tempoFinalSegundos,
+            proximaMeta: `Para 3 estrelas, termine em ${formatTime(TEMPO_3_ESTRELAS, 's')}.`
+        });
+        setIsFeedbackOpen(true);
 
-            if (totalEstrelasMundo >= MINIMO_ESTRELAS_AVANCAR) {
-                setResultadoMundo({
-                    totalEstrelas: totalEstrelasMundo,
-                    desbloqueado: true,
-                    mensagem: `Você coletou ${totalEstrelasMundo} estrelas e desbloqueou o próximo mundo!`
-                });
-                setTimeout(() => {
-                    navigate(`/mapa-do-jogo`, { state: { jogador, mundo_id: proximo_mundo_id } });
-                }, 3000);
-            } else {
-                setResultadoMundo({
-                    totalEstrelas: totalEstrelasMundo,
-                    desbloqueado: false,
-                    mensagem: `Você precisa de pelo menos ${MINIMO_ESTRELAS_AVANCAR} estrelas para avançar. Você conseguiu ${totalEstrelasMundo}. Jogue novamente para conseguir mais estrelas!`
-                });
-            }
-            setIsFimDoMundoOpen(true);
-        } else {
-            setResultadoFinal({
-                title: estrelas > 0 ? "Fase Concluída!" : "Tempo Esgotado!",
-                estrelas,
-                tempoConclusao: tempoFinalSegundos,
-                proximaMeta: `Para 3 estrelas, termine em ${formatTime(TEMPO_3_ESTRELAS, 's')}.`
-            });
-            setIsFeedbackOpen(true);
-        }
-    }, [estadoJogo, jogador, mundo_id, fase_id, dicasTotaisUsadas, navigate, proximo_mundo_id]);
+    }, [estadoJogo, jogador, mundo_id, fase_id, dicasTotaisUsadas]);
 
-    const handleConcluirFase = useCallback(() => {
-        if (estadoJogo === "finalizado") return;
-        const tempoFinalMs = Date.now() - tempoInicioFase;
-        handleFaseTermina({ tempoFinalMs });
-    }, [estadoJogo, tempoInicioFase, handleFaseTermina]);
-    
     const inicializarFase = useCallback(async () => {
         const itensDaApi = await buscarItensPorFase(mundo_id, fase_id);
         if (itensDaApi.length === 0) {
@@ -167,14 +140,20 @@ function Fase () {
             dica2: item.dica2,
             x: screenWidth + 200 + (index * 400),
             y: (window.innerHeight * (ALTURA_CHAO / 100) - 150) - (index % 2 === 0 ? 0 : 80),
+            initialY: (window.innerHeight * (ALTURA_CHAO / 100) - 150) - (index % 2 === 0 ? 0 : 80),
             pega: false,
             totalWorldWidth: totalWorldWidth,
         })));
         setEstadoJogo("jogando");
         setIsConfigOpen(false);
         setIsFeedbackOpen(false);
-        setIsFimDoMundoOpen(false);
     }, [mundo_id, fase_id]);
+
+    const handleConcluirFase = useCallback(() => {
+        if (estadoJogo === "finalizado") return;
+        const tempoFinalMs = Date.now() - tempoInicioFase;
+        handleFaseTermina({ tempoFinalMs });
+    }, [estadoJogo, tempoInicioFase, handleFaseTermina]);
 
     useEffect(() => {
         if (!jogador) {
@@ -350,13 +329,27 @@ function Fase () {
       }
     };
 
-    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
+    const handleVoltarAoMapa = () => {
+        // CORREÇÃO 3: Passa o 'mundo_id' atual para voltar ao mapa correto.
+        // Se for a última fase, também envia um sinal para o GameMap verificar a conclusão do mundo.
+        const navState = { jogador, mundo_id };
+        if (fase_id === 5) {
+            navState.checkWorldCompletion = true;
+        }
+        navigate("/mapa-do-jogo", { state: navState });
+    };
+
+    const handleAvancar = () => {
+        navigate(`/mundo/${mundo_id}/fase/${proxima_fase_id}`, { state: { jogador } });
+    };
+
     const handleRetry = () => inicializarFase();
-    const handleAvancar = () => navigate(`/mundo/${mundo_id}/fase/${proxima_fase_id}`, { state: { jogador } });
-    const handleVoltarAoMapa = () => navigate("/mapa-do-jogo", { state: { jogador } });
+    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
 
     if (estadoJogo === "carregando") { return <div style={{color: "white"}}>Carregando fase...</div>; }
     if (estadoJogo === "erro") { return <div style={{color: "white"}}>Ocorreu um erro ao carregar a fase. Tente voltar ao mapa.</div>; }
+
+ 
 
       return (
         <section className="level-section">
@@ -435,7 +428,7 @@ function Fase () {
                 <ScoreDisplay starsEarned={resultadoFinal.estrelas} />
                 <p>{resultadoFinal.proximaMeta}</p>
               </div>
-              <div className="feedback-info"><p>{resultadoFinal.aprendizado}</p></div>
+              <div className="feedback-info"><p>Você aprendeu a soletrar os nomes das frutas!</p></div>
               <div className="feedback-actions">
                 <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
                 <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
@@ -444,21 +437,6 @@ function Fase () {
               </div>
             </div>
           </Modal>
-
-          <Modal isOpen={isFimDoMundoOpen} onClose={handleVoltarAoMapa} title="Fim do Mundo!" variant="feedback">
-                <div className="feedback-content">
-                    <div className="feedback-stats">
-                        <p className="time-status">Parabéns por completar o {`Mundo ${mundo_id}`}!</p>
-                        <p>Total de Estrelas do Mundo:</p>
-                        <ScoreDisplay starsEarned={resultadoMundo.totalEstrelas} />
-                        <p>{resultadoMundo.mensagem}</p>
-                        {resultadoMundo.desbloqueado && <p>Indo para o próximo mundo...</p>}
-                    </div>
-                    <div className="feedback-actions">
-                        <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>Voltar ao Mapa</button>
-                    </div>
-                </div>
-            </Modal>
 
         </section>
       );
