@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/GameMap.css";
 import Modal from "../components/Modal";
 import ScoreDisplay from "../components/ScoreDisplay";
-import { buscarFaseAtual, buscarEstrelas } from "../services/apiProgresso";
+import { buscarFaseAtual, buscarEstrelas, buscarTotalEstrelas } from "../services/apiProgresso";
 import { verificarAcessoFase } from "../services/apiFases";
 import { mundos } from "../data/mundoData";
 
@@ -11,7 +11,7 @@ function GameMap() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const { jogador, mundo_id = 1 } = location.state || {};
+  const { jogador, mundo_id = 1, checkWorldCompletion } = location.state || {};
 
   const dadosMundo = mundos[mundo_id] || mundos[1];
   const levels = [1, 2, 3, 4, 5];
@@ -21,18 +21,16 @@ function GameMap() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [isWorldConfigOpen, setIsWorldConfigOpen] = useState(false);
+  const [isWorldSelectOpen, setIsWorldSelectOpen] = useState(false);
   const [indiceHistoria, setIndiceHistoria] = useState(0);
-  const [mostrarHistoria, setMostrarHistoria] = useState(!sessionStorage.getItem(`historia_mundo_${mundo_id}_vista`));
-  
-  // NOVO ESTADO: Armazena o nível de desbloqueio dos mundos
+  const [mostrarHistoria, setMostrarHistoria] = useState(false);
   const [mundosDesbloqueados, setMundosDesbloqueados] = useState({ 1: true });
+  const [isFimDoMundoOpen, setIsFimDoMundoOpen] = useState(false);
+  const [resultadoMundo, setResultadoMundo] = useState({ totalEstrelas: 0, mensagem: "" });
 
-  // MUDANÇA: A lógica foi movida para um useCallback para ser usada no useEffect
   const buscarDadosDoJogador = useCallback(async () => {
     if (!jogador || !jogador.id) return;
 
-    // Busca o progresso do mundo atual (visível no mapa)
     const faseAtual = await buscarFaseAtual(jogador.id, mundo_id);
     setFaseMaisAlta(faseAtual);
 
@@ -42,12 +40,10 @@ function GameMap() {
     }
     setStarsPerLevel(newStars);
 
-    // Busca o progresso de TODOS os mundos para o modal de seleção
-    const statusMundos = { 1: true }; // Mundo 1 é sempre desbloqueado
+    const statusMundos = { 1: true };
     for (const idMundo in mundos) {
         if (idMundo > 1) {
             const faseMaxMundoAnterior = await buscarFaseAtual(jogador.id, idMundo - 1);
-            // Um mundo é considerado concluído se a fase atual for maior que 5.
             if (faseMaxMundoAnterior > 5) {
                 statusMundos[idMundo] = true;
             }
@@ -65,6 +61,37 @@ function GameMap() {
     buscarDadosDoJogador();
   }, [jogador, navigate, mundo_id, buscarDadosDoJogador]);
 
+  // CORREÇÃO 1: Controla a exibição da história a cada mudança de mundo
+  useEffect(() => {
+    setMostrarHistoria(!sessionStorage.getItem(`historia_mundo_${mundo_id}_vista`));
+    setIndiceHistoria(0); // Reseta o índice da história ao mudar de mundo
+  }, [mundo_id]);
+
+  // CORREÇÃO 2: Verifica se deve mostrar o modal de fim de mundo
+  useEffect(() => {
+    const verificarFimDeMundo = async () => {
+        // O checkWorldCompletion vem do estado da navegação da Fase 5
+        if (checkWorldCompletion && jogador && jogador.id) {
+            // O mundo concluído é o anterior ao que estamos agora
+            const mundoConcluidoId = mundo_id; 
+            const totalEstrelas = await buscarTotalEstrelas(jogador.id, mundoConcluidoId);
+            const minimoParaAvancar = 11;
+            let mensagem;
+
+            if (totalEstrelas >= minimoParaAvancar) {
+                mensagem = `Você conseguiu ${totalEstrelas} estrelas! O próximo mundo foi desbloqueado!`;
+            } else {
+                mensagem = `Você precisa de ${minimoParaAvancar} estrelas para desbloquear o próximo mundo, mas conseguiu ${totalEstrelas}. Jogue novamente para conseguir mais!`;
+            }
+            setResultadoMundo({ totalEstrelas, mensagem });
+            setIsFimDoMundoOpen(true);
+        }
+    };
+    verificarFimDeMundo();
+    // Limpa o estado da navegação para não reabrir o modal
+    navigate(location.pathname, { state: { jogador, mundo_id }, replace: true });
+  }, [checkWorldCompletion, jogador, mundo_id, navigate, location.pathname]);
+
   const handleLevelClick = async (level) => {
     try {
       const resultado = await verificarAcessoFase(jogador.id, mundo_id, level);
@@ -75,7 +102,6 @@ function GameMap() {
         setIsModalOpen(true);
       }
     } catch (error) {
-        console.error("Erro ao verificar acesso à fase:", error);
         setModalMessage("Não foi possível verificar o acesso à fase. Tente novamente.");
         setIsModalOpen(true);
     }
@@ -83,11 +109,11 @@ function GameMap() {
 
   const handleWorldChange = (novoMundoId) => {
     navigate('/mapa-do-jogo', { state: { jogador, mundo_id: novoMundoId } });
-    setIsWorldConfigOpen(false);
+    setIsWorldSelectOpen(false);
   };
 
   const handleProximoDialogo = () => {
-    if (indiceHistoria < dadosMundo.historia.length - 1) {
+    if (dadosMundo.historia && indiceHistoria < dadosMundo.historia.length - 1) {
       setIndiceHistoria(indiceHistoria + 1);
     } else {
       sessionStorage.setItem(`historia_mundo_${mundo_id}_vista`, 'true');
@@ -113,7 +139,7 @@ function GameMap() {
               {dadosMundo.historia[indiceHistoria].dialogo}
             </p>
             <button className="historia-btn" onClick={handleProximoDialogo}>
-              {indiceHistoria < dadosMundo.historia.length - 1 ? "Próximo →" : "Jogar!"}
+              {indiceHistoria < dadosMundo.historia.length - 1 ? "Próximo" : "Jogar"}
             </button>
           </div>
         </div>
@@ -135,7 +161,7 @@ function GameMap() {
           <img src="/Settings.svg" alt="Configurações" />
         </button>
 
-        <button className="world-btn-right" onClick={() => setIsWorldConfigOpen(true)}>
+        <button className="world-btn-right" onClick={() => setIsWorldSelectOpen(true)}>
           <div></div>
           <img src="/World.svg" alt="Configurações" />
         </button>
@@ -162,6 +188,7 @@ function GameMap() {
         </div>
       </div>
 
+      {/*MODAL DE INFORMAÇÃO DE FASE*/}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -170,6 +197,7 @@ function GameMap() {
         <p>{modalMessage}</p>
       </Modal>
 
+      {/*MODAL DE CONFIG GERAL*/}
       <Modal
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}
@@ -182,22 +210,32 @@ function GameMap() {
         </div>
       </Modal>
 
-      <Modal
-        isOpen={isWorldConfigOpen}
-        onClose={() => setIsWorldConfigOpen(false)}
-        variant="worldConfig"
-      >
+      {/*MODAL DE NAVEGAÇÃO ENTRE MUNDOS*/}
+      <Modal isOpen={isWorldSelectOpen} 
+      onClose={() => setIsWorldSelectOpen(false)} variant="worldConfig">
+
         <div className="btn-grid-world">
-           {Object.keys(mundos).map(id => (
-            <button 
-              key={id}
-              className={`btn-world mundo-${id}-btn`}
-              onClick={() => handleWorldChange(parseInt(id))}
-              disabled={!mundosDesbloqueados[id]}
-            >
-              <div></div> {mundos[id].nome}
+
+          {Object.keys(mundos).map(id => (
+            <button key={id} className={`btn-world mundo-${id}-btn`} onClick={() => handleWorldChange(parseInt(id))} disabled={!mundosDesbloqueados[id]}>
+              <div></div>{mundos[id].nome}
             </button>
+
           ))}
+        </div>
+
+      </Modal>
+
+      {/*MODAL DE FIM DE FASE*/}
+      <Modal isOpen={isFimDoMundoOpen} 
+      onClose={() => setIsFimDoMundoOpen(false)} 
+      variant="feedback">
+        <div className="feedback-content">
+          <div className="feedback-stats">
+              <p>Total de Estrelas:</p>
+              <ScoreDisplay starsEarned={resultadoMundo.totalEstrelas} />
+              <p>{resultadoMundo.mensagem}</p>
+          </div>
         </div>
       </Modal>
     </section>
