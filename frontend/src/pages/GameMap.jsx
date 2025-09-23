@@ -10,7 +10,7 @@ import { mundos } from "../data/mundoData";
 function GameMap() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const { jogador, mundo_id = 1, checkWorldCompletion } = location.state || {};
 
   const dadosMundo = mundos[mundo_id] || mundos[1];
@@ -61,36 +61,35 @@ function GameMap() {
     buscarDadosDoJogador();
   }, [jogador, navigate, mundo_id, buscarDadosDoJogador]);
 
-  // CORREÇÃO 1: Controla a exibição da história a cada mudança de mundo
   useEffect(() => {
-    setMostrarHistoria(!sessionStorage.getItem(`historia_mundo_${mundo_id}_vista`));
-    setIndiceHistoria(0); // Reseta o índice da história ao mudar de mundo
-  }, [mundo_id]);
+    if (!jogador?.id || !dadosMundo?.historia?.length) {
+      setMostrarHistoria(false);
+      return;
+    }
+    const chave = `historia_mundo_${mundo_id}_jogador_${jogador.id}_vista`;
+    const historiaJaVista = !!sessionStorage.getItem(chave);
+    setMostrarHistoria(!historiaJaVista);
+    setIndiceHistoria(0);
+  }, [mundo_id, jogador?.id]);
 
-  // CORREÇÃO 2: Verifica se deve mostrar o modal de fim de mundo
   useEffect(() => {
     const verificarFimDeMundo = async () => {
-        // O checkWorldCompletion vem do estado da navegação da Fase 5
         if (checkWorldCompletion && jogador && jogador.id) {
-            // O mundo concluído é o anterior ao que estamos agora
-            const mundoConcluidoId = mundo_id; 
-            const totalEstrelas = await buscarTotalEstrelas(jogador.id, mundoConcluidoId);
+            const totalEstrelas = await buscarTotalEstrelas(jogador.id, mundo_id);
             const minimoParaAvancar = 11;
-            let mensagem;
-
-            if (totalEstrelas >= minimoParaAvancar) {
-                mensagem = `Você conseguiu ${totalEstrelas} estrelas! O próximo mundo foi desbloqueado!`;
-            } else {
-                mensagem = `Você precisa de ${minimoParaAvancar} estrelas para desbloquear o próximo mundo, mas conseguiu ${totalEstrelas}. Jogue novamente para conseguir mais!`;
-            }
-            setResultadoMundo({ totalEstrelas, mensagem });
+            const desbloqueado = totalEstrelas >= minimoParaAvancar;
+            
+            setResultadoMundo({
+                totalEstrelas,
+                mensagem: desbloqueado
+                    ? `Você conseguiu ${totalEstrelas} estrelas! O próximo mundo foi desbloqueado!`
+                    : `Você precisa de ${minimoParaAvancar} estrelas para desbloquear o próximo mundo. Você conseguiu ${totalEstrelas}. Jogue novamente!`
+            });
             setIsFimDoMundoOpen(true);
         }
     };
     verificarFimDeMundo();
-    // Limpa o estado da navegação para não reabrir o modal
-    navigate(location.pathname, { state: { jogador, mundo_id }, replace: true });
-  }, [checkWorldCompletion, jogador, mundo_id, navigate, location.pathname]);
+  }, [checkWorldCompletion, jogador, mundo_id]);
 
   const handleLevelClick = async (level) => {
     try {
@@ -108,7 +107,7 @@ function GameMap() {
   };
 
   const handleWorldChange = (novoMundoId) => {
-    navigate('/mapa-do-jogo', { state: { jogador, mundo_id: novoMundoId } });
+    navigate('/mapa-do-jogo', { state: { jogador, mundo_id: novoMundoId }, replace: true });
     setIsWorldSelectOpen(false);
   };
 
@@ -116,7 +115,8 @@ function GameMap() {
     if (dadosMundo.historia && indiceHistoria < dadosMundo.historia.length - 1) {
       setIndiceHistoria(indiceHistoria + 1);
     } else {
-      sessionStorage.setItem(`historia_mundo_${mundo_id}_vista`, 'true');
+      const chave = `historia_mundo_${mundo_id}_jogador_${jogador.id}_vista`;
+      sessionStorage.setItem(chave, 'true');
       setMostrarHistoria(false);
     }
   };
@@ -126,8 +126,7 @@ function GameMap() {
 
   return (
     <section className="map-section">
-      {/* Tela da História (agora dinâmica) */}
-      {mostrarHistoria && dadosMundo.historia && (
+      {mostrarHistoria && dadosMundo.historia && dadosMundo.historia[indiceHistoria] && (
         <div className="historia-overlay">
           <div className="historia-container">
             <img
@@ -188,7 +187,6 @@ function GameMap() {
         </div>
       </div>
 
-      {/*MODAL DE INFORMAÇÃO DE FASE*/}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -197,7 +195,6 @@ function GameMap() {
         <p>{modalMessage}</p>
       </Modal>
 
-      {/*MODAL DE CONFIG GERAL*/}
       <Modal
         isOpen={isConfigOpen}
         onClose={() => setIsConfigOpen(false)}
@@ -210,7 +207,6 @@ function GameMap() {
         </div>
       </Modal>
 
-      {/*MODAL DE NAVEGAÇÃO ENTRE MUNDOS*/}
       <Modal isOpen={isWorldSelectOpen} 
       onClose={() => setIsWorldSelectOpen(false)} variant="worldConfig">
 
@@ -226,7 +222,6 @@ function GameMap() {
 
       </Modal>
 
-      {/*MODAL DE FIM DE FASE*/}
       <Modal isOpen={isFimDoMundoOpen} 
       onClose={() => setIsFimDoMundoOpen(false)} 
       variant="feedback">
