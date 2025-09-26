@@ -1,346 +1,232 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../styles/Fase.css";
 import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
 import ScoreDisplay from './ScoreDisplay.jsx';
+import PuzzleTroca from './PuzzleTroca.jsx';
 import { buscarItensPorFase } from "../services/apiItensFase.js";
 
-const GRAVIDADE = 0.8;
-const FORCA_PULO = 18;
-const VELOCIDADE_PERSONAGEM = 8;
-const ALTURA_CHAO = 87;
-const VELOCIDADE_BEBIDAS = 2;
+// --- Constantes de Configuração do Jogo ---
 const TEMPO_3_ESTRELAS = 60;
 const TEMPO_2_ESTRELAS = 180;
 const TEMPO_1_ESTRELA = 300;
 const LIMITE_DICAS = 15;
+const POSICAO_PONTA_VARA = { x: 850, y: 100 }; // Ponto de origem da linha
 
-const formatTime = (time, unit = 'ms') => {
-  const totalSeconds = unit === 'ms' ? Math.floor(time / 1000) : time;
-  const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-  const sec = String(totalSeconds % 60).padStart(2, "0");
-  return `${min}:${sec}`;
+// --- Função Utilitária ---
+const formatTime = (timeInMs) => {
+    const totalSeconds = Math.floor(timeInMs / 1000);
+    const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const sec = String(totalSeconds % 60).padStart(2, "0");
+    return `${min}:${sec}`;
 };
 
-const gerarLetrasEmbaralhadas = (palavra) => {
-  const letrasPalavra = palavra.split('').map((letra, index) => ({ id: `letra-${index}`, letra, fixa: false }));
-  return letrasPalavra.sort(() => Math.random() - 0.5);
+// --- Componentes de UI (Filhos) ---
+
+const VaraDePesca = ({ mousePos }) => {
+    const deltaX = mousePos.x - POSICAO_PONTA_VARA.x;
+    const deltaY = mousePos.y - POSICAO_PONTA_VARA.y;
+
+    const distancia = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const angulo = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 90;
+
+    return (
+        <div className="vara-container">
+            {/* A Linha */}
+            <div
+                className="linha-pesca"
+                style={{
+                    height: `${distancia}px`,
+                    transform: `rotate(${angulo}deg)`,
+                }}
+            />
+        </div>
+    );
 };
 
-const Personagem = ({ pos, direcao }) => (
-    <img 
-        src="/bear-run.gif" 
-        className={`personagem-gif ${direcao === 'esquerda' ? 'virado-esquerda' : ''}`} 
-        style={{ left: `${pos.x}px`, top: `${pos.y}px` }}
-        alt="Personagem Urso Correndo"
+const Bebida = ({ bebida, onClick }) => (
+    <img
+        src={bebida.imgSrc}
+        className="bebida-flutuante"
+        style={{ left: `${bebida.x}%`, animationDelay: `${bebida.delay}s` }}
+        alt={bebida.nome}
+        onClick={() => onClick(bebida)}
     />
 );
 
-const Bebida = ({ bebida }) => ( 
-    <img src={bebida.imgSrc} className="bebida" style={{ left: `${bebida.x}px`, top: `${bebida.y}px` }} alt={bebida.nome} /> 
-);
-
+// --- Componente Principal da Fase ---
 function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
     const navigate = useNavigate();
     const { mundoId, faseId } = useParams();
-
-    const mundo_id = parseInt(mundoId);
-    const fase_id = parseInt(faseId);
+    const gameAreaRef = useRef(null);
 
     const [estadoJogo, setEstadoJogo] = useState("carregando");
-    const [tempoInicioFase, setTempoInicioFase] = useState(Date.now());
-    const [tempoDecorridoParaScore, setTempoDecorridoParaScore] = useState(0);
-    const [dicasTotaisUsadas, setDicasTotaisUsadas] = useState(0);
-    const [isConfigOpen, setIsConfigOpen] = useState(false);
-    const [tempoExibido, setTempoExibido] = useState("00:00");
-    const [personagemPos, setPersonagemPos] = useState({ x: 100, y: 0, vy: 0 });
-    const [direcaoPersonagem, setDirecaoPersonagem] = useState('direita');
-    const [teclasPressionadas, setTeclasPressionadas] = useState({});
+    const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 });
+    const [dicasUsadas, setDicasUsadas] = useState(0);
     const [bebidas, setBebidas] = useState([]);
-    const [isPuzzleOpen, setIsPuzzleOpen] = useState(false);
-    const [puzzleAtual, setPuzzleAtual] = useState({ 
-        bebida: null, 
-        palavraOriginal: '',
-        slotsResposta: []
-    });
-    const [puzzleError, setPuzzleError] = useState(false);
-    const [colisaoAtiva, setColisaoAtiva] = useState(false);
-    const [itemEmJogo, setItemEmJogo] = useState(null);
+    const [puzzle, setPuzzle] = useState({ isOpen: false, item: null });
     const [dicaExibida, setDicaExibida] = useState("Troque as letras para formar a palavra!");
-    
-    const gameLoopRef = useRef();
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [isConfigOpen, setIsConfigOpen] = useState(false);
 
-    const handleFaseTermina = useCallback(({ tempoFinalMs, motivo }) => {
+    const handleMouseMove = useCallback((e) => {
+        if (estadoJogo !== 'jogando' || puzzle.isOpen) return;
+        const rect = gameAreaRef.current?.getBoundingClientRect() || { top: 0, left: 0 };
+        setMousePos({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        });
+    }, [estadoJogo, puzzle.isOpen]);
+
+    const finalizarFase = useCallback((motivo = 'concluido') => {
         if (estadoJogo === "finalizado") return;
         setEstadoJogo("finalizado");
-        
-        const tempoFinalSegundos = Math.floor(tempoFinalMs / 1000);
+
+        const tempoFinalSegundos = Math.floor(tempo.decorrido / 1000);
         let estrelas = 0;
+
         if (motivo !== 'tempo_esgotado') {
             if (tempoFinalSegundos <= TEMPO_3_ESTRELAS) estrelas = 3;
             else if (tempoFinalSegundos <= TEMPO_2_ESTRELAS) estrelas = 2;
             else if (tempoFinalSegundos <= TEMPO_1_ESTRELA) estrelas = 1;
-            if (dicasTotaisUsadas > LIMITE_DICAS) estrelas = Math.max(0, estrelas - 1);
+
+            if (dicasUsadas > LIMITE_DICAS) {
+                estrelas = Math.max(0, estrelas - 1);
+            }
         }
         onFaseCompleta({ estrelas, tempoConclusao: tempoFinalSegundos });
-    }, [estadoJogo, dicasTotaisUsadas, onFaseCompleta]);
+    }, [estadoJogo, tempo.decorrido, dicasUsadas, onFaseCompleta]);
 
     const inicializarFase = useCallback(async () => {
-        const itensDaApi = await buscarItensPorFase(mundo_id, fase_id);
-        if (itensDaApi.length === 0) {
-            throw new Error("Nenhum item encontrado para a fase.");
+        setEstadoJogo("carregando");
+        try {
+            const itensDaApi = await buscarItensPorFase(parseInt(mundoId), parseInt(faseId));
+            if (!itensDaApi?.length) throw new Error("Nenhum item encontrado.");
+
+            setBebidas(itensDaApi.map((item, index) => ({
+                id: item.id,
+                nome: item.resposta.toUpperCase(),
+                imgSrc: item.imagem_url,
+                dica1: item.dica1,
+                dica2: item.dica2,
+                x: 20 + (index * 25),
+                delay: Math.random() * 5,
+                pega: false,
+            })));
+            
+            setTempo({ inicio: Date.now(), decorrido: 0 });
+            setDicasUsadas(0);
+            setPuzzle({ isOpen: false, item: null });
+            setIsConfigOpen(false);
+            setEstadoJogo("jogando");
+        } catch (error) {
+            console.error("Erro ao inicializar fase:", error);
+            setEstadoJogo("erro");
         }
-        setTempoInicioFase(Date.now());
-        setDicasTotaisUsadas(0);
-        setTempoDecorridoParaScore(0);
-        setPersonagemPos({ x: 100, y: 0, vy: 0 });
-        setDirecaoPersonagem('direita');
-        setColisaoAtiva(false);
-        const screenWidth = window.innerWidth;
-        const totalWorldWidth = itensDaApi.length * 400;
-        setBebidas(itensDaApi.map((item, index) => ({
-            id: item.id,
-            nome: item.resposta.toUpperCase(),
-            imgSrc: item.imagem_url,
-            dica1: item.dica1,
-            dica2: item.dica2,
-            x: screenWidth + 200 + (index * 400),
-            y: (window.innerHeight * (ALTURA_CHAO / 100) - 150) - (index % 2 === 0 ? 0 : 80),
-            pega: false,
-            totalWorldWidth: totalWorldWidth,
-        })));
-        setEstadoJogo("jogando");
-        setIsConfigOpen(false);
-    }, [mundo_id, fase_id]);
+    }, [mundoId, faseId]);
 
-    const handleConcluirFase = useCallback(() => {
-        if (estadoJogo === "finalizado") return;
-        const tempoFinalMs = Date.now() - tempoInicioFase;
-        handleFaseTermina({ tempoFinalMs });
-    }, [estadoJogo, tempoInicioFase, handleFaseTermina]);
+    const handlePescarBebida = useCallback((bebida) => {
+        if (estadoJogo !== 'jogando') return;
+        setEstadoJogo("pausado");
+        setPuzzle({ isOpen: true, item: { ...bebida, timestampInicio: Date.now() } });
+    }, [estadoJogo]);
 
-    useEffect(() => {
-        if (!jogador) {
-            navigate("/");
-        } else {
-            inicializarFase().catch(error => { setEstadoJogo("erro"); });
-        }
-    }, [jogador, navigate, inicializarFase]);
-
-    useEffect(() => {
-        if (bebidas.length > 0 && estadoJogo === "jogando") {
-            if (bebidas.every(bebida => bebida.pega)) {
-                handleConcluirFase();
-            }
-        }
-    }, [bebidas, estadoJogo, handleConcluirFase]);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => setTeclasPressionadas(prev => ({ ...prev, [e.key]: true }));
-        const handleKeyUp = (e) => setTeclasPressionadas(prev => ({ ...prev, [e.key]: false }));
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
-        };
-    }, []);
-
-    const handlePegarBebida = useCallback((bebida) => {
-        setItemEmJogo({ ...bebida, timestampInicio: Date.now() });
-        setDicaExibida("Troque as letras para formar o nome da bebida!");
-        const letrasEmbaralhadas = gerarLetrasEmbaralhadas(bebida.nome);
-        setPuzzleAtual({
-            bebida: bebida,
-            palavraOriginal: bebida.nome,
-            slotsResposta: letrasEmbaralhadas,
-        });
-        setIsPuzzleOpen(true);
-    }, []);
-    
     const handleAcertoPuzzle = useCallback(() => {
-        setBebidas(prevBebidas =>
-            prevBebidas.map(b =>
-                b.id === puzzleAtual.bebida.id ? { ...b, pega: true } : b
-            )
-        );
-        setIsPuzzleOpen(false);
-        setColisaoAtiva(false);
-        setItemEmJogo(null);
-        setDicaExibida("Parabéns! Continue coletando as outras bebidas.");
-    }, [puzzleAtual.bebida]);
+        if (!puzzle.item) return;
+        setBebidas(prev => prev.map(b => b.id === puzzle.item.id ? { ...b, pega: true } : b));
+        setPuzzle({ isOpen: false, item: null });
+        setDicaExibida("Troque as letras para formar a palavra!");
+        setEstadoJogo("jogando");
+    }, [puzzle.item]);
+    
+    const handleDicaLiberada = useCallback((nivelDica, itemId) => {
+        if (!puzzle.item || puzzle.item.id !== itemId) return;
+        const dicaTexto = nivelDica === 1 ? puzzle.item.dica1 : puzzle.item.dica2;
+        if(dicaTexto) {
+            setDicaExibida(dicaTexto);
+            setDicasUsadas(prev => prev + 1);
+        }
+    }, [puzzle.item]);
 
-    const verificarEFixarLetrasCorretas = useCallback((slots) => {
-        const palavraArray = puzzleAtual.palavraOriginal.split('');
-        const novosSlots = slots.map((slot, index) => {
-            if (slot && !slot.fixa && slot.letra === palavraArray[index]) {
-                return { ...slot, fixa: true };
-            }
-            return slot;
-        });
-        
-        if (novosSlots.every(slot => slot.fixa)) {
-            setTimeout(handleAcertoPuzzle, 500);
-        }
-        return novosSlots;
-    }, [puzzleAtual.palavraOriginal, handleAcertoPuzzle]);
-
-    const gameLoop = useCallback(() => {
-        if (estadoJogo !== "jogando" || isPuzzleOpen) {
-            gameLoopRef.current = requestAnimationFrame(gameLoop);
-            return;
-        }
-        setPersonagemPos(prevPos => {
-            let { x, y, vy } = prevPos;
-            if (teclasPressionadas['ArrowLeft']) x -= VELOCIDADE_PERSONAGEM;
-            if (teclasPressionadas['ArrowRight']) x += VELOCIDADE_PERSONAGEM;
-            setDirecaoPersonagem(teclasPressionadas['ArrowLeft'] ? 'esquerda' : 'direita');
-            vy += GRAVIDADE;
-            y += vy;
-            const chao = window.innerHeight * (ALTURA_CHAO / 100) - 50;
-            if (y > chao) { y = chao; vy = 0; }
-            if (teclasPressionadas['ArrowUp'] && y === chao) vy = -FORCA_PULO;
-            if (x < 0) x = 0;
-            if (x > window.innerWidth - 50) x = window.innerWidth - 50;
-            return { x, y, vy };
-        });
-        setBebidas(bebidasAtuais => bebidasAtuais.map(bebida => {
-            if (!bebida.pega) {
-                bebida.x -= VELOCIDADE_BEBIDAS;
-                if (bebida.x < -100) bebida.x += bebida.totalWorldWidth;
-            }
-            return bebida;
-        }));
-        for (const bebida of bebidas) {
-            if (!bebida.pega && !colisaoAtiva) {
-                const pRect = { x: personagemPos.x, y: personagemPos.y, width: 50, height: 50 };
-                const bRect = { x: bebida.x, y: bebida.y, width: 50, height: 50 };
-                if (pRect.x < bRect.x + bRect.width && pRect.x + pRect.width > bRect.x &&
-                    pRect.y < bRect.y + bRect.height && pRect.y + pRect.height > bRect.y) {
-                    setColisaoAtiva(true);
-                    handlePegarBebida(bebida);
-                    break;
-                }
-            }
-        }
-        gameLoopRef.current = requestAnimationFrame(gameLoop);
-    }, [estadoJogo, isPuzzleOpen, teclasPressionadas, personagemPos.x, personagemPos.y, bebidas, colisaoAtiva, handlePegarBebida]);
+    const handlePausar = useCallback(() => {
+        setEstadoJogo(prev => (prev === 'jogando' ? 'pausado' : 'jogando'));
+        setIsConfigOpen(false);
+    }, []);
 
     useEffect(() => {
-        gameLoopRef.current = requestAnimationFrame(gameLoop);
-        return () => cancelAnimationFrame(gameLoopRef.current);
-    }, [gameLoop]);
-
-    const handleDragStart = (e, indexSlotOrigem) => { 
-        if (puzzleAtual.slotsResposta[indexSlotOrigem]?.fixa) {
-            e.preventDefault();
-            return;
-        }
-        e.dataTransfer.setData('slotIndexData', indexSlotOrigem.toString());
-        e.dataTransfer.effectAllowed = 'move';
-    };
+        if (!jogador) navigate("/");
+        else inicializarFase();
+    }, [jogador, navigate, inicializarFase]);
     
-    const handleDropLetra = (e, indexSlotDestino) => {
-        e.preventDefault();
-        const indexOrigem = parseInt(e.dataTransfer.getData('slotIndexData'));
-        if (indexOrigem === indexSlotDestino) return;
-
-        const slotOrigem = puzzleAtual.slotsResposta[indexOrigem];
-        const slotDestino = puzzleAtual.slotsResposta[indexSlotDestino];
-
-        if (slotOrigem?.fixa || slotDestino?.fixa) {
-            setPuzzleError(true);
-            setTimeout(() => setPuzzleError(false), 800);
-            return;
+    useEffect(() => {
+        if (estadoJogo === "jogando" && bebidas.length > 0 && bebidas.every(b => b.pega)) {
+            finalizarFase('concluido');
         }
+    }, [bebidas, estadoJogo, finalizarFase]);
 
-        const novosSlots = [...puzzleAtual.slotsResposta];
-        novosSlots[indexOrigem] = slotDestino;
-        novosSlots[indexSlotDestino] = slotOrigem;
-
-        const slotsAtualizados = verificarEFixarLetrasCorretas(novosSlots);
-        setPuzzleAtual(prev => ({ ...prev, slotsResposta: slotsAtualizados }));
-    };
-
-    const handleTempoTick = (tempoMs) => {
-        setTempoExibido(formatTime(tempoMs, 'ms'));
-        setTempoDecorridoParaScore(tempoMs);
-    };
-    
-    const handleDicaLiberada = (nivelDica, itemId) => {
-        const item = itemEmJogo;
-        if (!item || item.id !== itemId) return;
-        const dicaTexto = nivelDica === 1 ? item.dica1 : item.dica2;
-        if (dicaTexto) {
-            setDicaExibida(dicaTexto);
-            setDicasTotaisUsadas(prev => prev + 1);
-        }
-    };
-    
-    const handleRetry = () => inicializarFase();
-    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
-
-    if (estadoJogo === "carregando") { return <div style={{color: "white"}}>Carregando fase...</div>; }
-    if (estadoJogo === "erro") { return <div style={{color: "white"}}>Ocorreu um erro ao carregar a fase. Tente voltar ao mapa.</div>; }
+    if (estadoJogo === "carregando") return <div className="loading-screen">Carregando...</div>;
+    if (estadoJogo === "erro") return <div className="error-screen">Erro ao carregar a fase.</div>;
 
     return (
-        <section className="level-section">
-            {estadoJogo === "jogando" && (
+        <section className="level-section" onMouseMove={handleMouseMove} ref={gameAreaRef}>
+            <header>
+                <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
+                    <img src="/Settings.svg" alt="Configurações" />
+                </button>
+                <ScoreDisplay tempoDecorridoMs={tempo.decorrido} dicasTotaisUsadas={dicasUsadas} />
+                <div className="timer">
+                    <img src="/timer.svg" alt="Cronômetro" />
+                    <p className="seconds">{formatTime(tempo.decorrido)}</p>
+                </div>
+            </header>
+            
+            {(estadoJogo === "jogando" || estadoJogo === "pausado") && (
                 <Cronometro
-                    tempoInicioFase={tempoInicioFase}
+                    isPaused={estadoJogo === "pausado"}
+                    tempoInicioFase={tempo.inicio}
                     limiteTempoFase={TEMPO_1_ESTRELA * 1000}
-                    onTempoTick={handleTempoTick}
-                    onFaseTermina={(resultado) => handleFaseTermina({ ...resultado, motivo: 'tempo_esgotado' })}
-                    itemAtual={itemEmJogo}
+                    onTempoTick={(ms) => setTempo(t => ({ ...t, decorrido: ms }))}
+                    onFaseTermina={() => finalizarFase('tempo_esgotado')}
+                    itemAtual={puzzle.item}
                     onDicaLiberada={handleDicaLiberada}
                 />
             )}
-            <div className="level-container">
-                <img src="/level-2-background.svg" alt="fundo do mundo 2" className="level-1-bg" />
-                <div className="chao"></div>
-                <Personagem pos={personagemPos} direcao={direcaoPersonagem} />
-                {bebidas.map(bebida => !bebida.pega && <Bebida key={bebida.id} bebida={bebida} />)}
-            </div>
-            <header>
-                <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}><img src="/Settings.svg" alt="Configurações" /></button>
-                <ScoreDisplay tempoDecorridoMs={tempoDecorridoParaScore} dicasTotaisUsadas={dicasTotaisUsadas} />
-                <div className="timer"><img src="/timer.svg" alt="Cronômetro" /><p className="seconds">{tempoExibido}</p></div>
-            </header>
-            <Modal isOpen={isPuzzleOpen} title="Qual o nome da bebida?" variant="puzzle">
-                <div className="puzzle-container">
-                    <img src={puzzleAtual.bebida?.imgSrc} alt={puzzleAtual.bebida?.nome} className="puzzle-fruta-img" />
-                    <div className={`puzzle-slots-troca ${puzzleError ? 'error' : ''}`}>
-                        {puzzleAtual.slotsResposta.map((slot, index) => (
-                            <div
-                                key={slot.id}
-                                className={`slot-letra ${slot.fixa ? 'locked' : ''}`}
-                                draggable={!slot.fixa}
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={(e) => handleDropLetra(e, index)}
-                            >
-                                {slot.letra}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="balao-dicas">
-                        <img src="/baloon.svg" alt="balão de dica" className="baloon" />
-                        <p id="hint-text">{dicaExibida}</p>
-                    </div>
+            
+            <div className="level-container-mundo2">
+                <img src="/level-2-background.svg" alt="Fundo da fase 2" className="level-bg-mundo2" />
+                <VaraDePesca mousePos={mousePos} />
+                <div className="agua">
+                    {bebidas.filter(b => !b.pega).map(bebida => (
+                        <Bebida key={bebida.id} bebida={bebida} onClick={handlePescarBebida} />
+                    ))}
                 </div>
+            </div>
+
+            <Modal isOpen={puzzle.isOpen} title="Qual o nome da bebida?" variant="puzzle">
+                {puzzle.item && (
+                    <div className="puzzle-container">
+                        <img src={puzzle.item.imgSrc} alt={puzzle.item.nome} className="puzzle-bebida-img" />
+                        <PuzzleTroca palavraCorreta={puzzle.item.nome} onComplete={handleAcertoPuzzle} />
+                        <div className="balao-dicas">
+                            <img src="/baloon.svg" alt="balão de dica" className="baloon" />
+                            <p id="hint-text">{dicaExibida}</p>
+                        </div>
+                    </div>
+                )}
             </Modal>
+
             <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
                 <div className="btn-level-grid">
-                    <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundo_id } })}><div></div>🏠</button>
-                    <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
-                    <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
-                    <button className="btn help-btn" onClick={() => navigate('/ajuda')}><div></div> ajuda</button>
-                    <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}><div></div>fechar</button>
+                    <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundoId } })}>🏠</button>
+                    <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
+                    <button className="btn retry-btn" onClick={inicializarFase}>↩</button>
+                    <button className="btn help-btn" onClick={() => navigate('/ajuda')}>ajuda</button>
+                    <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}>fechar</button>
                 </div>
             </Modal>
         </section>
     );
-};
+}
 
 export default Mundo2_Gameplay;
