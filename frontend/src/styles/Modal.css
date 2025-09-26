@@ -6,7 +6,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 1;
+    z-index: 50;
 }
 
 .modal-bg{
@@ -26,6 +26,16 @@
     font-weight: normal;
     color: white;
     font-size: 2rem;
+}
+
+.modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 51; 
 }
 
 .modal-body{
