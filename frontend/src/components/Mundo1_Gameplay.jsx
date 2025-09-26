@@ -318,17 +318,37 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             )}
             <div className="level-container">
                 <img src="/level-1-background.svg" alt="fundo-de-floresta" className="level-1-bg" />
-                <div className="clouds-wrapper"><img src="/clouds.svg" alt="nuvens" className="clouds" /><img src="/clouds.svg" alt="nuvens" className="clouds delay" /></div>
-                <div className="trees-wrapper"><img src="/trees-transparent.svg" alt="pinheiros" className="pines" /><img src="/trees-transparent.svg" alt="pinheiros" className="pines delay" /></div>
+
+                <div className="clouds-wrapper">
+                    <img src="/clouds.svg" alt="nuvens" className="clouds" />
+                    <img src="/clouds.svg" alt="nuvens" className="clouds delay" />
+                </div>
+
+                <div className="trees-wrapper">
+                    <img src="/trees-transparent.svg" alt="pinheiros" className="pines" />
+                    <img src="/trees-transparent.svg" alt="pinheiros" className="pines delay" />
+                </div>
+
                 <div className="chao"></div>
+
                 <Personagem pos={personagemPos} direcao={direcaoPersonagem} />
+                
                 {frutas.map(fruta => !fruta.pega && <Fruta key={fruta.id} fruta={fruta} />)}
             </div>
+
             <header>
-                <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}><img src="/Settings.svg" alt="Configurações" /></button>
+                <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
+                    <img src="/Settings.svg" alt="Configurações" />
+                </button>
+
                 <ScoreDisplay tempoDecorridoMs={tempoDecorridoParaScore} dicasTotaisUsadas={dicasTotaisUsadas} />
-                <div className="timer"><img src="/timer.svg" alt="Cronômetro" /><p className="seconds">{tempoExibido}</p></div>
+
+                <div className="timer">
+                    <img src="/timer.svg" alt="Cronômetro" />
+                    <p className="seconds">{tempoExibido}</p>
+                </div>
             </header>
+
             <Modal isOpen={isPuzzleOpen} title="Qual o nome da fruta?" variant="puzzle">
                 <div className="puzzle-container">
                     <div className="fruit-slots">
@@ -363,7 +383,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
                 </div>
             </Modal>
             
-            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
+            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
                 <div className="btn-level-grid">
                     <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
                     <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
