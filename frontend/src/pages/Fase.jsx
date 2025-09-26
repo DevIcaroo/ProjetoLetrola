@@ -95,7 +95,6 @@ function Fase() {
       case 1:
         return <Mundo1_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
       case 2:
-        // Futuramente, adicionar <Mundo2_Gameplay key={gameKey} ... />
         return <Mundo2_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
       default:
         return <div>Mundo não encontrado!</div>;
