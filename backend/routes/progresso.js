@@ -131,59 +131,39 @@ router.get("/total-estrelas/:id_jogador", (req, res) => {
  * Rota para buscar a FASE ATUAL do jogo ATIVO de um jogador em um mundo.
  */
 router.get("/:id_jogador/:mundo_id", (req, res) => {
-  const { id_jogador, mundo_id } = req.params;
-  const mundoNum = parseInt(mundo_id);
+    const { id_jogador, mundo_id } = req.params;
+    const mundoNum = parseInt(mundo_id);
 
-  if (!validarIdJogador(id_jogador) || isNaN(mundoNum) || mundoNum < 1) {
-    return res.status(400).json({ error: "ID do jogador ou mundo inválido." });
-  }
-
-  // Busca a fase mais alta jogada no jogo ATIVO.
-  db.get(
-    `SELECT MAX(fase) as fase_atual FROM progresso WHERE id_jogador = ? AND mundo = ? AND ativo = 1`,
-    [id_jogador, mundoNum],
-    (err, row) => {
-      if (err) {
-        return res.status(500).json({ error: "Erro ao buscar progresso." });
-      }
-      
-      // Se não houver progresso, a fase atual é a 1.
-      if (!row || !row.fase_atual) {
-        return res.json({ fase_atual: 1 });
-      }
-
-      // Verifica se a última fase jogada foi concluída (tem > 0 estrelas) para liberar a próxima.
-      db.get(
-        `SELECT estrelas FROM progresso WHERE id_jogador = ? AND mundo = ? AND fase = ? AND ativo = 1`,
-        [id_jogador, mundoNum, row.fase_atual],
-        (err, estrelasRow) => {
-            if (err) {
-                return res.status(500).json({ error: "Erro ao verificar estrelas." });
-            }
-            if (estrelasRow && estrelasRow.estrelas > 0) {
-                return res.json({ fase_atual: row.fase_atual + 1 });
-            }
-            return res.json({ fase_atual: row.fase_atual });
-        }
-      )
-
-      db.get(
-        `SELECT estrelas FROM progresso WHERE id_jogador = ? AND mundo = ? AND fase = ? AND ativo = 1`,
-        [jogadorId, mundoNum, row.fase_atual],
-        (err, estrelasRow) => {
-            if (err) {
-                return res.status(500).json({ error: "Erro ao verificar estrelas." });
-            }
-            // MUDANÇA: Garante que, ao concluir a fase 5, a fase_atual se torne 6.
-            if (estrelasRow && estrelasRow.estrelas > 0) {
-                return res.json({ fase_atual: row.fase_atual + 1 });
-            }
-            return res.json({ fase_atual: row.fase_atual });
-        }
-      )
+    if (!validarIdJogador(id_jogador) || isNaN(mundoNum) || mundoNum < 1) {
+        return res.status(400).json({ error: "ID do jogador ou mundo inválido." });
     }
 
-  );
+    const sql = `SELECT MAX(fase) as fase_maxima FROM progresso WHERE id_jogador = ? AND mundo = ? AND ativo = 1`;
+    db.get(sql, [id_jogador, mundoNum], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: "Erro ao buscar progresso." });
+        }
+
+        if (!row || !row.fase_maxima) {
+            return res.json({ fase_atual: 1 });
+        }
+
+        const faseMax = row.fase_maxima;
+        const sqlEstrelas = `SELECT estrelas FROM progresso WHERE id_jogador = ? AND mundo = ? AND fase = ? AND ativo = 1`;
+        db.get(sqlEstrelas, [id_jogador, mundoNum, faseMax], (err, estrelasRow) => {
+            if (err) {
+                return res.status(500).json({ error: "Erro ao verificar estrelas da última fase." });
+            }
+
+            if (estrelasRow && estrelasRow.estrelas > 0) {
+                // Se a última fase jogada tem estrelas, o jogador pode ir para a próxima.
+                return res.json({ fase_atual: faseMax + 1 });
+            } else {
+                // Se não, ele continua na mesma fase.
+                return res.json({ fase_atual: faseMax });
+            }
+        });
+    });
 });
 
 /**
