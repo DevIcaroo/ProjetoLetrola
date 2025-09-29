@@ -297,11 +297,14 @@ button:hover{
 .choice-buttons {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
+  padding: 1rem;
+  width: 400px;
 }
 .btn-choice {
   padding: 1rem 0;
-  width: 280px;
+  width: 300px;
   border: none;
   border-radius: 15px;
   color: white;
