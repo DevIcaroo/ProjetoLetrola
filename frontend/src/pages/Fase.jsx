@@ -5,6 +5,7 @@ import Mundo2_Gameplay from '../components/Mundo2_Gameplay';
 import Modal from "../components/Modal.jsx";
 import ScoreDisplay from '../components/ScoreDisplay.jsx';
 import { salvarProgresso, buscarTotalEstrelas } from "../services/apiProgresso.js";
+import { mundos } from "../data/mundoData.js";
 
 // Função para formatar o tempo
 const formatTime = (time, unit = 'ms') => {
@@ -73,9 +74,13 @@ function Fase() {
 
   // Funções de navegação e controle do modal
   const handleVoltarAoMapa = () => {
-    setIsFeedbackOpen(false);
-    navigate("/mapa-do-jogo", { state: navState });
-  };
+        const navState = { jogador, mundo_id };
+        if (fase_id === 5) {
+            navState.checkWorldCompletion = true;
+        }
+        setIsFeedbackOpen(false)
+        navigate("/mapa-do-jogo", { state: navState });
+    };
 
   const handleAvancar = () => {
     const proxima_fase_id = fase_id + 1;
@@ -87,6 +92,17 @@ function Fase() {
   const handleRetry = () => {
     setIsFeedbackOpen(false);
     setGameKey(Date.now()); // Atualiza a key para forçar a remontagem do componente
+  };
+
+  const handleProximoMundo = () => {
+    setIsFimDoMundoOpen(false); // Fecha o modal
+    const proximo_mundo_id = mundo_id + 1;
+    
+    // Navega para o mapa, passando o ID do PRÓXIMO mundo no estado
+    navigate("/mapa-do-jogo", { 
+      state: { jogador, mundo_id: proximo_mundo_id },
+      replace: true
+    });
   };
 
   // Renderiza o componente de gameplay correto para o mundo
@@ -123,7 +139,7 @@ function Fase() {
             <p>{resultadoFinal.proximaMeta}</p>
           </div>
           <div className="feedback-info">
-            <p>Você aprendeu a soletrar os nomes das frutas!</p>
+            <p>{mundos[mundo_id]?.mensagemFeedback || "Parabéns, você completou o desafio!"}</p>
           </div>
           <div className="feedback-actions">
             <button className="btn map-btn" onClick={handleVoltarAoMapa}>
@@ -143,6 +159,22 @@ function Fase() {
           </div>
         </div>
       </Modal>
+
+      <Modal isOpen={isFimDoMundoOpen} 
+      onClose={handleVoltarAoMapa} // Pode reusar a função de voltar ao mapa
+      variant="feedback">
+        <div className="feedback-content">
+          <div className="feedback-stats">
+              <p>{resultadoMundo.mensagem}</p>
+              {resultadoMundo.desbloqueado && (
+                <button className='btn next-level-btn' onClick={handleProximoMundo}>
+                  Ir para o próximo mundo
+                </button>
+              )}
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 }
