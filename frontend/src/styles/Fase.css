@@ -334,6 +334,7 @@ header{
   flex-direction: column;
   align-items: center;
   font-family: 'Bangers', cursive;
+  width: 100vw;
 }
 
 .puzzle-fruta-img, .puzzle-bebida-img {
@@ -465,13 +466,16 @@ header{
     background-color: #FF2526;
   }
 }
+
+
 /* ESTILOS PARA O MUNDO 2 - PESCARIA */
+
+
 .level-container-mundo2 {
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
-  /* A propriedade 'cursor: none;' foi REMOVIDA daqui para restaurar o cursor do navegador */
 }
 
 .level-bg-mundo2 {
@@ -479,6 +483,18 @@ header{
   height: 100%;
   object-fit: cover;
   position: absolute;
+}
+
+.mundo-2-puzzle-bg{
+  top: 20%;
+}
+
+.mundo-2-puzzle-content{
+  top: 42%;
+}
+
+.mundo-2-puzzle-content .balao-dicas{
+  transform: translateY(-2rem);
 }
 
 .vara-container {
@@ -524,6 +540,8 @@ header{
     transform: translateY(-25px) rotate(5deg);
   }
 }
+
+/* ESTILOS RESPONSIVOS*/
 
 @media (width: 1024px){
   .fruit-slots{
@@ -609,6 +627,18 @@ header{
   #hint-text{
     top: 52%;
   }
+
+  .mundo-2-puzzle-bg{
+    top: 28%;
+  }
+
+  .mundo-2-puzzle-content{
+  top: 71%;
+}
+
+  .mundo-2-puzzle-content .balao-dicas{
+    transform: translate(5%, -25rem);
+  }
 }
 
 @media (max-width: 499px) {
@@ -629,6 +659,7 @@ header{
   .fruit-slots{
     gap: 4rem;
   }
+
 }
 
 @media (max-width: 399px){
