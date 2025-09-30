@@ -1,11 +1,9 @@
 import React from "react";
 import "../styles/Modal.css";
 
-function Modal({ isOpen, onClose, title, children, variant = "default", hideBackground = false }) {
+function Modal({ isOpen, onClose, title, children, variant = "default", hideBackground = false, contentClassName = '', modalBgClassName = '' }) {
   if (!isOpen) return null;
 
-  // CORREÇÃO: Os caminhos agora são absolutos a partir da raiz (/)
-  // Isso garante que as imagens sejam encontradas em qualquer rota (ex: /mundo/1/fase/1)
   const backgrounds = {
     default: "/modal.svg",
     config: "/modal-yellow.svg",
@@ -29,12 +27,12 @@ function Modal({ isOpen, onClose, title, children, variant = "default", hideBack
       {!hideBackground && (
         <img 
         src={backgrounds[variant]} 
-        alt="fundo-modal" className="modal-bg"
+        alt="fundo-modal" className={`modal-bg ${modalBgClassName}`}
         style={{ ...imgStyle, ...animationStyle }}
         />
       )}
-      <div
-        className="modal-content"
+       <div
+        className={`modal-content ${contentClassName}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && <h2 className="modal-title">{title}</h2>}
