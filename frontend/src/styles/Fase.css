@@ -344,7 +344,7 @@ header{
 }
 
 .puzzle-bebida-img{
-  margin-top: 20rem;
+  margin: 18rem 0 3rem ;
 }
 
 .fruit-slots{
@@ -470,12 +470,21 @@ header{
 
 /* ESTILOS PARA O MUNDO 2 - PESCARIA */
 
-
 .level-container-mundo2 {
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
+  cursor: none;
+}
+
+.ponta-vara-origem {
+  position: absolute;
+  top: 13%;
+  left: 62%;  
+  width: 1px;
+  height: 1px;
+  color: #763918;
 }
 
 .level-bg-mundo2 {
@@ -486,34 +495,49 @@ header{
 }
 
 .mundo-2-puzzle-bg{
-  top: 20%;
+  top: 10%;
 }
 
 .mundo-2-puzzle-content{
-  top: 42%;
+  top: 40%;
+}
+
+.mundo-2-puzzle-content .modal-title{
+  top: 30%;
 }
 
 .mundo-2-puzzle-content .balao-dicas{
-  transform: translateY(-2rem);
+  transform: translate(3rem, -3rem);
+}
+
+.mundo-2-puzzle-content .baloon{
+  width: 40rem;
 }
 
 .vara-container {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 1rem;
+  left: 0.3rem;
   width: 100%;
   height: 100%;
   pointer-events: none;
   z-index: 10;
 }
 
+.anzol {
+  position: absolute;
+  width: 35px;
+  height: 35px;
+  transform: translate(-55%, -30%); 
+  pointer-events: none;
+  z-index: 11;
+}
+
 /* A linha de pesca */
 .linha-pesca {
   position: absolute;
-  top: 100px; 
-  left: 850px;
-  width: 2px;
-  background-color: #333;
+  width: 1px;
+  background-color: #774504;
   transform-origin: top left;
 }
 
@@ -522,7 +546,7 @@ header{
   position: absolute;
   bottom: 5%;
   width: 55px;
-  cursor: pointer;
+  cursor: none;
   animation: flutuar 8s ease-in-out infinite;
   transition: transform 0.2s ease;
   pointer-events: auto;
@@ -542,10 +566,19 @@ header{
 }
 
 /* ESTILOS RESPONSIVOS*/
+@media(width: 1280px){
+  .vara-container{
+    top: 6rem;
+  }
+}
 
 @media (width: 1024px){
   .fruit-slots{
     margin-top: 11rem;
+  }
+
+  .vara-container{
+    top: 3.8rem;
   }
 }
 
@@ -588,6 +621,11 @@ header{
 
   #hint-text {
     font-size: 1rem;
+  }
+
+  .vara-container{
+    top: 7rem;
+    left: 3.5rem;
   }
 }
 
@@ -646,6 +684,10 @@ header{
     padding-top: 23rem;
   }
 
+  .puzzle-bebida-img{
+    margin: 15rem 0 3rem;
+  }
+
   .balao-dicas {
     order: 2;
     width: 100%;
@@ -660,10 +702,19 @@ header{
     gap: 4rem;
   }
 
+  .vara-container{
+    top: 9rem;
+    left: 6.5rem;
+  }
+
+  .mundo-2-puzzle-content .balao-dicas {
+        transform: translate(2%, -25rem);
+  }
 }
 
 @media (max-width: 399px){
   .puzzle-container{
     padding-top: 20rem;
   }
+
 }
