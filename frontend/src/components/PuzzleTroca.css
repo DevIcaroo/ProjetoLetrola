@@ -5,26 +5,30 @@
   justify-content: center;
   min-width: 900px;
 }
-
-/* Área onde os slots das letras são exibidos */
-.bebidas-slots {
+.area-slots {
   display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  padding: 2rem;
+  flex-wrap: wrap; /* ESSENCIAL: Permite que os itens quebrem para a próxima linha */
+  gap: 5px;
   justify-content: center;
-  width: 100vw;
+  align-items: center;
+  max-width: 600px; /* Defina uma largura máxima para o container do puzzle */
+}
+
+/* Elemento invisível que força a quebra de linha */
+.word-break {
+  flex-basis: 100%; /* Faz o elemento ocupar uma linha inteira */
+  height: 0; /* Torna o elemento invisível */
 }
 
 /* Estilo base para cada bloco de letra */
 .letra-tile {
-  width: 55px;
-  height: 55px;
+  width: 45px;
+  height: 44px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 8px;
-  font-size: 26px;
+  font-size: 1.5rem;
   font-weight: bold;
   text-transform: uppercase;
   color: #333;
