@@ -144,7 +144,8 @@ function GameMap() {
         </div>
       )}
 
-      <div className="map-container">
+      <div className={`map-container mundo-${mundo_id}-layout`}>
+
         <img src={dadosMundo.mapa.imagem} alt={`Mapa do ${dadosMundo.nome}`} className="map"/>
 
         <div className="greeting">
@@ -222,17 +223,6 @@ function GameMap() {
 
       </Modal>
 
-      <Modal isOpen={isFimDoMundoOpen} 
-      onClose={() => setIsFimDoMundoOpen(false)} 
-      variant="feedback">
-        <div className="feedback-content">
-          <div className="feedback-stats">
-              <p>Total de Estrelas:</p>
-              <ScoreDisplay starsEarned={resultadoMundo.totalEstrelas} />
-              <p>{resultadoMundo.mensagem}</p>
-          </div>
-        </div>
-      </Modal>
     </section>
   );
 }
