@@ -5,6 +5,7 @@ export const mundos = {
     mapa: {
       imagem: "/map.svg", // Imagem de fundo do mapa 1
     },
+    mensagemFeedback: "Você aprendeu a soletrar os nomes das frutas!",
     historia: [
       {
         imagem: "/monkey-story-1.svg",
@@ -29,10 +30,11 @@ export const mundos = {
     mapa: {
       imagem: "/map-2.svg", // Imagem de fundo do mapa 2
     },
+    mensagemFeedback: "Você aprendeu a escrever os nomes das bebidas!",
     historia: [
       {
         imagem: "/bear-story-1.svg",
-        dialogo: "Oi! Eu sou o Urso Polar! Vim da minha casa geladinha só para curtir a festa na selva!",
+        dialogo: "Oi! Eu sou o Polado! Vim da minha casa geladinha só para curtir a festa na selva!",
       },
       {
         imagem: "/bear-story-2.svg",
