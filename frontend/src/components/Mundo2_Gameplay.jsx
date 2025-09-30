@@ -24,11 +24,6 @@ const formatTime = (timeInMs) => {
 // --- Componentes de UI (Filhos) ---
 
 const VaraDePesca = ({ mousePos, pontaDaVara }) => {
-    // Se a posição da ponta da vara ainda não foi calculada, não renderiza nada para evitar um flash no canto da tela
-    if (pontaDaVara.x === 0 && pontaDaVara.y === 0) {
-        return null;
-    }
-
     const deltaX = mousePos.x - pontaDaVara.x;
     const deltaY = mousePos.y - pontaDaVara.y;
 
@@ -59,6 +54,7 @@ const VaraDePesca = ({ mousePos, pontaDaVara }) => {
     );
 };
 
+
 const Bebida = ({ bebida, onClick }) => (
     <img
         src={bebida.imgSrc}
@@ -74,12 +70,9 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
     const navigate = useNavigate();
     const { mundoId, faseId } = useParams();
     const gameAreaRef = useRef(null);
-    
-    // Refs e State para a posição responsiva da vara
     const pontaVaraRef = useRef(null);
     const [pontaVaraPos, setPontaVaraPos] = useState({ x: 0, y: 0 });
-
-    // States do jogo
+    const [isBgLoaded, setIsBgLoaded] = useState(false);
     const [estadoJogo, setEstadoJogo] = useState("carregando");
     const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 });
     const [dicasUsadas, setDicasUsadas] = useState(0);
@@ -89,7 +82,6 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isConfigOpen, setIsConfigOpen] = useState(false);
 
-    // Efeito que calcula e recalcula a posição da vara de forma responsiva
     useEffect(() => {
         const updatePontaVaraPos = () => {
             if (pontaVaraRef.current && gameAreaRef.current) {
@@ -101,13 +93,20 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
                 });
             }
         };
+        
+        // Roda o cálculo assim que a imagem de fundo estiver carregada
+        if (isBgLoaded) {
+            updatePontaVaraPos();
+        }
 
-        updatePontaVaraPos(); // Roda uma vez na montagem
-        window.addEventListener('resize', updatePontaVaraPos); // Roda novamente se a tela for redimensionada
+        // Continua a escutar por redimensionamento da janela
+        window.addEventListener('resize', updatePontaVaraPos);
 
-        // Limpa o "escutador" de evento quando o componente é desmontado para evitar vazamentos de memória
-        return () => window.removeEventListener('resize', updatePontaVaraPos);
-    }, []); // O array vazio [] garante que isso rode apenas após a primeira renderização
+        return () => {
+            window.removeEventListener('resize', updatePontaVaraPos);
+        };
+        // A dependência agora é o estado de carregamento da imagem
+    }, [isBgLoaded]); 
 
     const handleMouseMove = useCallback((e) => {
         if (estadoJogo !== 'jogando' || puzzle.isOpen) return;
@@ -233,9 +232,13 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
             )}
             
             <div className="level-container-mundo2">
-                <img src="/level-2-background.svg" alt="Fundo da fase 2" className="level-bg-mundo2" />
+                <img 
+                    src="/level-2-background.svg" 
+                    alt="Fundo da fase 2" 
+                    className="level-bg-mundo2"
+                    onLoad={() => setIsBgLoaded(true)}
+                />
 
-                {/* Esta div invisível serve como ponto de referência responsivo para o CSS */}
                 <div ref={pontaVaraRef} className="ponta-vara-origem"></div>
 
                 <VaraDePesca mousePos={mousePos} pontaDaVara={pontaVaraPos} />
@@ -251,7 +254,7 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
             title="Qual o nome da bebida?" 
             variant="puzzle"
             contentClassName="mundo-2-puzzle-content"
-            backgroundClassName="mundo-2-puzzle-bg"
+            modalBgClassName="mundo-2-puzzle-bg"
             >
                 {puzzle.item && (
                     <div className="puzzle-container">
