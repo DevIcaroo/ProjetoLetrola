@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './PuzzleTroca.css'; // Vamos usar o novo CSS abaixo
+import './PuzzleTroca.css';
 
 // Função para embaralhar o array de letras
 const shuffleArray = (array) => {
@@ -19,28 +19,41 @@ function PuzzleTroca({ palavraCorreta, onComplete }) {
 
   // Efeito para inicializar ou resetar o puzzle
   useEffect(() => {
-    // 1. Cria um array de objetos a partir da palavra correta
     const letrasIniciais = palavraCorreta.split('').map((char, index) => ({
       char: char,
-      id: index, // ID único para cada letra/posição
-      estaCorreta: false,
+      id: index,
+      // Se o caractere for um espaço, ele já começa como correto/travado
+      estaCorreta: char === ' ',
     }));
 
-    // 2. Embaralha o array até que seja diferente da palavra original
-    let letrasEmbaralhadas;
-    do {
-      letrasEmbaralhadas = shuffleArray(letrasIniciais);
-    } while (letrasEmbaralhadas.map(l => l.char).join('') === palavraCorreta);
+    // Filtra apenas as letras para embaralhar, mantendo os espaços fora
+    const apenasLetras = letrasIniciais.filter(l => l.char !== ' ');
+    const letrasEmbaralhadas = shuffleArray(apenasLetras);
+
+    // Remonta o array final, colocando as letras embaralhadas nos lugares que não são espaços
+    let indexLetraEmbaralhada = 0;
+    const arrayEmbaralhado = letrasIniciais.map(item => {
+        if (item.char === ' ') {
+            return item; // Mantém o espaço
+        }
+        // Adiciona a próxima letra embaralhada
+        return letrasEmbaralhadas[indexLetraEmbaralhada++];
+    });
     
-    // 3. Verifica se alguma letra já caiu no lugar certo por acaso
-    const letrasVerificadas = letrasEmbaralhadas.map((letra, index) => ({
-        ...letra,
-        estaCorreta: letra.char === palavraCorreta[index]
-    }));
-    
-    setLetras(letrasVerificadas);
-    setIndiceSelecionado(null); // Reseta a seleção
+    // ✅ LÓGICA ATUALIZADA AQUI: Verifica as posições corretas logo no início
+    const arrayVerificado = arrayEmbaralhado.map((item, index) => {
+        // Se o caractere na posição atual for igual ao da palavra correta,
+        // marca como 'estaCorreta'. Isso já "trava" as letras que começam no lugar certo.
+        if (item.char === palavraCorreta[index]) {
+            return { ...item, estaCorreta: true };
+        }
+        return item;
+    });
+
+    setLetras(arrayVerificado); // Define o estado com o array já verificado
+    setIndiceSelecionado(null);
   }, [palavraCorreta]);
+  
   
   // Efeito para verificar se o puzzle foi concluído
   useEffect(() => {
@@ -63,7 +76,7 @@ function PuzzleTroca({ palavraCorreta, onComplete }) {
     if (indiceSelecionado === null) {
       // ...seleciona a letra clicada.
       setIndiceSelecionado(indexClicado);
-    } 
+    }  
     // Se o jogador clicar na mesma letra de novo...
     else if (indiceSelecionado === indexClicado) {
       // ...cancela a seleção.
@@ -83,7 +96,7 @@ function PuzzleTroca({ palavraCorreta, onComplete }) {
         
       novoArrayLetras[indexClicado].estaCorreta = 
         novoArrayLetras[indexClicado].char === palavraCorreta[indexClicado];
-      
+        
       // Atualiza o estado com as letras trocadas
       setLetras(novoArrayLetras);
       // Reseta a seleção para a próxima jogada
@@ -93,8 +106,13 @@ function PuzzleTroca({ palavraCorreta, onComplete }) {
 
   return (
     <div className="puzzle-troca-container">
-      <div className="bebidas-slots">
+      <div className="area-slots">
         {letras.map((letra, index) => {
+          // Se for um espaço, renderiza uma quebra de linha invisível
+          if (letra.char === ' ') {
+            return <div key={letra.id} className="word-break" />;
+          }
+
           // Define as classes CSS dinamicamente
           const classes = [
             'letra-tile',
@@ -107,8 +125,7 @@ function PuzzleTroca({ palavraCorreta, onComplete }) {
               key={letra.id}
               className={classes}
               onClick={() => handleCliqueLetra(index)}
-              // Desabilita o botão se a letra já estiver correta
-              disabled={letra.estaCorreta} 
+              disabled={letra.estaCorreta}  
             >
               {letra.char}
             </button>
