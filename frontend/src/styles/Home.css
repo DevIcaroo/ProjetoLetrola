@@ -46,6 +46,13 @@ button:hover{
     top: 0%;
 }
 
+.logo-cruzeiro{
+    position: absolute;
+    top: 2%;
+    left: 85%;
+    width: 10rem;
+}
+
 .monkey{
     position: absolute;
     z-index: 2;
@@ -341,6 +348,10 @@ button:hover{
     .logo {
         width: 70vw;
         top: 10%;
+    }
+
+    .logo-cruzeiro{
+        width: 20vw;
     }
 
     .monkey {
