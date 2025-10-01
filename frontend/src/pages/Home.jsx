@@ -66,7 +66,7 @@ function Home() {
   const closeModal = () => {
     if (isLoading) return;
     setModalStep(0);
-    setIsConfigOpen(false); // Adicionado para fechar o modal de config também
+    setIsConfigOpen(false);
     setErrorMessage("");
     setNomeJogador("");
   };
@@ -75,6 +75,7 @@ function Home() {
     <section className="home-section">
         <div className={`home-container ${modalStep > 0 || isConfigOpen ? "blur" : ""}`}>
         <img src="/background forest.svg" alt="plano-de-fundo" className="home-bg" />
+        <img src="/logo-cruzeiro.svg" alt="lodo-cruzeiro-do-sul" className="logo-cruzeiro"/>
         <img src="/logo.svg" alt="logo-letrola" className="logo" />
         <img src="./monkey.svg" alt="macaco" className="monkey" />
         <img src="./light.svg" alt="luz" className="light" />
