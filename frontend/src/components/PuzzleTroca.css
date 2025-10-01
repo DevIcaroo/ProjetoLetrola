@@ -1,4 +1,3 @@
-/* Container principal do puzzle */
 .puzzle-troca-container {
   display: flex;
   flex-direction: row;
@@ -7,20 +6,20 @@
 }
 .area-slots {
   display: flex;
-  flex-wrap: wrap; /* ESSENCIAL: Permite que os itens quebrem para a próxima linha */
+  flex-wrap: wrap;
   gap: 5px;
   justify-content: center;
   align-items: center;
-  max-width: 600px; /* Defina uma largura máxima para o container do puzzle */
+  max-width: 600px;
+  min-height: 50px;
+  padding: 0.5rem;
 }
 
-/* Elemento invisível que força a quebra de linha */
 .word-break {
-  flex-basis: 100%; /* Faz o elemento ocupar uma linha inteira */
-  height: 0; /* Torna o elemento invisível */
+  flex-basis: 100%;
+  height: 0;
 }
 
-/* Estilo base para cada bloco de letra */
 .letra-tile {
   width: 45px;
   height: 44px;
@@ -43,22 +42,19 @@
   transform: translateY(-2px);
 }
 
-/* Estilo para a letra que está SELECIONADA */
 .letra-tile.selecionado {
-  border-color: #f1c40f;
+  border-color: #FFEA00;
   transform: scale(1.05);
   box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Estilo para a letra que está CORRETA (travada) */
 .letra-tile.correto {
-  background-color: #2ecc71;
+  background-color: #D3EF5C;
   color: white;
   cursor: not-allowed; 
   animation: bounceIn 0.4s ease;
 }
 
-/* Animação para quando a letra entra no lugar certo */
 @keyframes bounceIn {
   0% { transform: scale(0.8); }
   50% { transform: scale(1.1); }
