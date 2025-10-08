@@ -1,41 +1,66 @@
-// routes/fases.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const db = require('../db');
+const db = require("../db");
 
-// Rota para verificar o acesso a uma fase
-router.get('/fase/:id_jogador/:mundo/:fase', (req, res) => {
-    const { id_jogador, mundo, fase } = req.params;
+// Validação para IDs numéricos.
+function validarIdJogador(id) {
+  const num = parseInt(id, 10);
+  return !isNaN(num) && num > 0;
+}
 
-    // A primeira fase de qualquer mundo está sempre liberada
-    if (parseInt(fase, 10) === 1) {
-        return res.json({ permitido: true });
+router.get("/fase/:id_jogador/:mundo/:fase", (req, res) => {
+  const { id_jogador, mundo, fase } = req.params;
+  const mundoRequisitado = parseInt(mundo);
+  const faseRequisitada = parseInt(fase);
+
+    // Agora validamos o ID numérico
+  if (!validarIdJogador(id_jogador) || isNaN(mundoRequisitado) || isNaN(faseRequisitada)) {
+      return res.status(400).json({ error: "Parâmetros inválidos." });
+  }
+
+    // Lógica para novos jogadores que ainda não estão no banco de dados
+  if (faseRequisitada === 1) {
+      return res.json({ permitido: true, mensagem: "Acesso liberado para a fase 1." });
+  }
+
+  db.get(
+    `SELECT MAX(fase) as fase_atual FROM progresso WHERE id_jogador = ? AND mundo = ?`,
+    [id_jogador, mundoRequisitado],
+    (err, row) => {
+      if (err) {
+        console.error("Erro ao verificar acesso à fase:", err);
+        return res.status(500).json({ error: "Erro interno." });
+      }
+
+      const faseAtual = row?.fase_atual || 0;
+
+      if (faseRequisitada > faseAtual + 1) {
+        return res.status(403).json({
+          permitido: false,
+          mensagem: `Fase ${faseRequisitada} bloqueada. Conclua a fase ${
+            faseAtual + 1
+          } primeiro.`,
+        });
+      } // A consulta agora busca dados da fase usando MUNDO e FASE
+
+      db.get(
+        `SELECT nome, descricao FROM fases WHERE mundo = ? AND fase = ?`,
+        [mundoRequisitado, faseRequisitada],
+        (faseErr, faseRow) => {
+          if (faseErr) {
+            console.error("Erro ao buscar dados da fase:", faseErr);
+            return res.status(500).json({ error: "Erro interno." });
+          }
+
+          res.json({
+            permitido: true,
+            mensagem: `Acesso liberado para a fase ${faseRequisitada}.`,
+            fase: faseRow || null,
+          });
+        }
+      );
     }
-
-    // Para fases > 1, verifica se a fase anterior foi completada com PELO MENOS 1 ESTRELA.
-    const faseAnterior = parseInt(fase, 10) - 1;
-    const sql = `
-        SELECT estrelas 
-        FROM progresso 
-        WHERE id_jogador = ? AND mundo = ? AND fase = ? AND ativo = 1 AND estrelas > 0`; // <-- A MUDANÇA IMPORTANTE ESTÁ AQUI
-
-    db.get(sql, [id_jogador, mundo, faseAnterior], (err, row) => {
-        if (err) {
-            console.error("Erro no DB:", err.message);
-            return res.status(500).json({ error: 'Erro ao verificar progresso.' });
-        }
-        
-        // Se a consulta encontrou um resultado, o acesso é permitido
-        if (row) {
-            return res.json({ permitido: true });
-        } else {
-            // Se não encontrou, o acesso é negado
-            return res.status(403).json({ 
-                permitido: false, 
-                mensagem: `Você precisa completar a Fase ${faseAnterior} primeiro!` 
-            });
-        }
-    });
+  );
 });
 
 module.exports = router;
