@@ -21,14 +21,15 @@ const dialogosRoutes = require('./routes/dialogos');
 const fasesRoutes = require('./routes/fases');
 const itensFaseRoutes = require('./routes/itensFase');
 const jogadoresRoutes = require('./routes/jogadores');
+const cruzadinhasRoutes = require('./routes/cruzadinhas');
 
 // --- Registo das Rotas com Prefixos ---
-// ✅ MODIFICAÇÃO: Todas as rotas agora têm um prefixo base claro.
 app.use('/progresso', progressoRoutes);
 app.use('/dialogos', dialogosRoutes);
 app.use('/fases', fasesRoutes);
 app.use('/itens-fase', itensFaseRoutes);
 app.use('/jogadores', jogadoresRoutes);
+app.use('/cruzadinhas', cruzadinhasRoutes);
 
 // --- Arranque do Servidor ---
 app.listen(PORT, () => {
