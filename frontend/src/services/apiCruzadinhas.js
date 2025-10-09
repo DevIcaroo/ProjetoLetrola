@@ -1,0 +1,61 @@
+// services/apiCruzadinhas.js
+
+// A URL base para as rotas de cruzadinha, de acordo com o que definimos no server.js.
+const BASE_URL = 'http://localhost:3000/cruzadinhas';
+
+/**
+ * Busca a estrutura de uma cruzadinha (palavras, dicas, posições) para uma fase específica.
+ * @param {number} mundo O número do mundo.
+ * @param {number} fase O número da fase.
+ * @returns {Promise<Array<object>>} Uma lista de objetos, onde cada objeto representa uma palavra na cruzadinha.
+ */
+export async function buscarCruzadinhaPorFase(mundo, fase) {
+  try {
+    // Chama a rota GET /cruzadinhas/:mundo/:fase
+    const response = await fetch(`${BASE_URL}/${mundo}/${fase}`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Erro ao buscar dados da cruzadinha.");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro na requisição da cruzadinha:", error);
+    // Lança o erro para que o componente React que chamou esta função possa tratá-lo.
+    throw error;
+  }
+}
+
+/**
+ * Valida se uma palavra preenchida pelo jogador está correta.
+ * @param {number} mundo O número do mundo atual.
+ * @param {number} fase O número da fase atual.
+ * @param {string} palavra A palavra que o jogador submeteu.
+ * @returns {Promise<object>} Um objeto indicando se a resposta está correta. Ex: { correta: true, palavra: 'FITA' }
+ */
+export async function validarPalavraCruzadinha(mundo, fase, palavra) {
+  try {
+    // Chama a rota POST /cruzadinhas/validar
+    const response = await fetch(`${BASE_URL}/validar`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      // Envia os dados necessários para o backend fazer a validação segura.
+      body: JSON.stringify({ mundo, fase, palavra }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Erro ao validar a palavra.");
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Erro na requisição de validação da cruzadinha:", error);
+    throw error;
+  }
+}
