@@ -50,5 +50,30 @@ export const mundos = {
       },
     ]
 },
+  3: {
+    nome: "Lagoa da Diversão",
+    mapa: {
+      imagem: "/map-3.svg", // Imagem de fundo do mapa 2
+    },
+    mensagemFeedback: "Você aprendeu a escrever os nomes das decorações!",
+    historia: [
+      {
+        imagem: "/frog-story-1.svg",
+        dialogo: "Oi! Eu sou o Hebert! O sapo mais criativo da lagoa! Preparei fitas, flores e enfeites para a festa na selva!",
+      },
+      {
+        imagem: "/frog-story-2.svg",
+        dialogo: "Saltei de vitória-régia em vitória-régia para enfeitar tudinho! Mas, ops... Minhas anotações se misturaram!",
+      },
+      {
+        imagem: "/frog-story-3.svg",
+        dialogo: "As palavras dos enfeites ficaram embaralhadas! Agora não sei mais o nome de cada decoração...",
+      },
+      {
+        imagem: "/frog-story-4.svg",
+        dialogo: "Você pode me ajudar a desembaralhar as palavras? Assim a festa vai ficar linda e brilhante!",
+      },
+    ]
+},
 // Mais mundos podem ser adicionados aqui
   }
