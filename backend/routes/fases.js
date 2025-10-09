@@ -24,7 +24,7 @@ router.get("/fase/:id_jogador/:mundo/:fase", (req, res) => {
   }
 
   db.get(
-    `SELECT MAX(fase) as fase_atual FROM progresso WHERE id_jogador = ? AND mundo = ?`,
+    `SELECT MAX(fase) as fase_atual FROM progresso WHERE id_jogador = ? AND mundo = ? AND ativo = 1`,
     [id_jogador, mundoRequisitado],
     (err, row) => {
       if (err) {
