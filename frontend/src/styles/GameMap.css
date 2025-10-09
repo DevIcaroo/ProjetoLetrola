@@ -280,6 +280,13 @@
 .mundo-2-layout .level-4 { top: 10%; right: 35%; cursor: pointer; }
 .mundo-2-layout .level-5 { top: 0%;  right: 42%; cursor: pointer; }
 
+/* --- Layout de Posições para o Mundo 3 --- */
+.mundo-3-layout .level-1 { top: 75%; left: 45%; cursor: pointer; }
+.mundo-3-layout .level-2 { top: 50%; left: 40%; cursor: pointer; }
+.mundo-3-layout .level-3 { top: 40%; right: 0%; cursor: pointer; }
+.mundo-3-layout .level-4 { top: 23%; right: 35%; cursor: pointer; }
+.mundo-3-layout .level-5 { top: 1%;  right: 45%; cursor: pointer; }
+
 .locked{
     filter: grayscale(100%);
 }
