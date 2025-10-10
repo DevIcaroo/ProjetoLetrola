@@ -1,0 +1,242 @@
+/* frontend/src/styles/Cruzadinha.css */
+header{
+  position: absolute;
+  z-index: 2;
+  bottom: 75%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  padding: 1rem;
+  width: 100vw;
+  align-items: center;
+}
+
+/*botâo de configurações de fase*/
+.level-settings-btn{
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 10px;
+  background-color: #FABA00;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  border-bottom: #9F5704 5px solid;
+  border-left: #9F5704 5px solid;
+}
+
+.level-settings-btn img{
+    width: 75%;
+    z-index: 1;
+    position: relative;
+}
+
+/*timer*/
+.timer{
+  display: flex;
+  justify-content: flex-end;
+}
+
+.timer-btn{
+  position: absolute;
+    z-index: 2;
+    bottom: 7%;
+    left: 35%;
+    padding: 12px 80px;
+    border-radius: 30px;
+    border: none;
+    background-color: #FF2526;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    border-bottom: #DA1213 8px solid;
+    border-left: #DA1213 8px solid;
+}
+
+.seconds{
+    position: absolute;
+    top: 35%;
+    right: 7%;
+    font-size: 2rem;
+    color: #FFFFFF;
+    font-family: "Bangers", system-ui;
+    padding: 0.2rem;
+}
+
+/*--------------botões modal config geral---------------- */
+.btn-level-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    width: 250px;
+    justify-items: center;
+    padding: 0.5rem;
+}
+
+.btn-level-grid .btn:nth-child(3){
+  grid-column: auto;
+}
+
+.btn-level-grid .btn:nth-child(4),.btn:nth-child(5) {
+    grid-column: 1 / 4;
+}
+
+.map-btn, .stop-btn, .retry-btn{
+    position: relative;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background-color: #B3CD45;
+    color: #FFFFFF;
+    font-size: 1.3rem;
+    cursor: pointer;
+    border-bottom: #7BAF1B 6px solid;
+}
+
+.map-btn div, .stop-btn div, .retry-btn div{
+    position: absolute;
+    width: 90%;
+    height: 20px;
+    border-radius: 5px;
+    background-color: #ffffff48;
+    left: 5%;
+    bottom: 45%;
+}
+
+.map-btn{
+  background-color: #51D3CC ;
+  border-bottom: #2CB3B7 6px solid;
+}
+
+.stop-btn{
+  background-color: #FF2526 ;
+  border-bottom: #DA1213 6px solid;
+}
+
+.retry-btn{
+  background-color: #FE4590 ;
+  border-bottom: #CA3F78 6px solid;
+}
+
+.cruzadinha-section {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('/cruzadinha-bg.svg');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Alinha o conteúdo no topo */
+    align-items: center;
+    font-family: 'Fredoka', sans-serif;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ✨ NOVA ÁREA DE JOGO ✨ */
+.cruzadinha-painel-container {
+    position: relative;
+    margin-top: 3vh; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50vw;
+    max-width: 900px;
+}
+
+.painel-bg {
+    width: 100%;
+    height: auto;
+}
+
+.cruzadinha-grid {
+    display: grid;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+
+.grid-cell {
+    width: 40px;
+    height: 40px;
+    position: relative;
+    background-image: url('/vit-regia.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.grid-cell.empty {
+    background: transparent;
+}
+
+.grid-cell input {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-size: 1.2rem;
+    font-family: 'Bangers', cursive;
+    text-transform: uppercase;
+    border: none;
+    background-color: transparent;
+    outline: none;
+    color: #fff;
+    caret-color: #fff;
+}
+
+.grid-cell .cell-number {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #4a2e0a;
+    pointer-events: none;
+}
+
+.grid-cell input.active-word {
+    /* Efeito sutil para a palavra ativa, pode ser um brilho */
+    filter: brightness(1.2);
+}
+
+.grid-cell input.correct {
+    color: #4CAF50; /* Cor da letra correta */
+    text-shadow: 1px 1px 2px #fff;
+}
+
+.grid-cell input.error {
+    animation: shake-error 0.5s;
+    background-color: rgba(255, 82, 82, 0.5); /* Fundo vermelho transparente para erro */
+    border-radius: 50%;
+}
+
+/* ✨ NOVA PLACA DE DICA ✨ */
+.dica-container {
+    position: absolute;
+    bottom: 0vh;
+    width: 20rem;
+    height: 10rem;
+    background-image: url('/dica.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 40px;
+    text-align: center;
+}
+
+.dica-container p {
+    font-family: 'Bangers', cursive;
+    font-size: 1rem;
+    color: white;
+    text-shadow: 2px 2px 4px #000;
+}
+
+
+
+@keyframes shake-error { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.loading-screen, .error-screen { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: white; background-color: #46CAC6; }
