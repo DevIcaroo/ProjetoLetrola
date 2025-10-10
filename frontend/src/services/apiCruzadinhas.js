@@ -1,6 +1,5 @@
-// services/apiCruzadinhas.js
+// frontend/src/services/apiCruzadinhas.js
 
-// A URL base para as rotas de cruzadinha, de acordo com o que definimos no server.js.
 const BASE_URL = 'http://localhost:3000/cruzadinhas';
 
 /**
@@ -11,7 +10,6 @@ const BASE_URL = 'http://localhost:3000/cruzadinhas';
  */
 export async function buscarCruzadinhaPorFase(mundo, fase) {
   try {
-    // Chama a rota GET /cruzadinhas/:mundo/:fase
     const response = await fetch(`${BASE_URL}/${mundo}/${fase}`);
     
     if (!response.ok) {
@@ -23,7 +21,6 @@ export async function buscarCruzadinhaPorFase(mundo, fase) {
     return data;
   } catch (error) {
     console.error("Erro na requisição da cruzadinha:", error);
-    // Lança o erro para que o componente React que chamou esta função possa tratá-lo.
     throw error;
   }
 }
@@ -37,13 +34,11 @@ export async function buscarCruzadinhaPorFase(mundo, fase) {
  */
 export async function validarPalavraCruzadinha(mundo, fase, palavra) {
   try {
-    // Chama a rota POST /cruzadinhas/validar
     const response = await fetch(`${BASE_URL}/validar`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      // Envia os dados necessários para o backend fazer a validação segura.
       body: JSON.stringify({ mundo, fase, palavra }),
     });
 
