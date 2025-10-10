@@ -402,8 +402,8 @@ function seedDatabase() {
           fase: 1,
           palavra: 'FITA',
           dica: 'Usada para fazer laços em presentes.',
-          x: 0,
-          y: 1,
+          x: 1,
+          y: 0,
           orientacao: 'horizontal'
         },
         {
@@ -420,17 +420,20 @@ function seedDatabase() {
           fase: 1,
           palavra: 'BOLA',
           dica: 'Redonda e usada em muitas brincadeiras.',
-          x: 3,
-          y: 1,
-          orientacao: 'vertical'
+          x: 0,
+          y: 2,
+          orientacao: 'horizontal'
         },
+
+        //FASE 2
+
         {
           mundo: 3,
           fase: 2,
           palavra: 'VELA',
           dica: 'Ilumina o bolo de aniversário.',
           x: 1,
-          y: 2,
+          y: 0,
           orientacao: 'horizontal'
         },
         {
@@ -447,8 +450,8 @@ function seedDatabase() {
           fase: 2,
           palavra: 'PAINEL',
           dica: 'Fica na parede atrás da mesa do bolo.',
-          x: 0,
-          y: 4,
+          x: 2,
+          y: 1,
           orientacao: 'horizontal'
         },
         {
@@ -456,7 +459,7 @@ function seedDatabase() {
           fase: 2,
           palavra: 'LÂMPADA',
           dica: 'Objeto que produz luz.',
-          x: 5,
+          x: 7,
           y: 1,
           orientacao: 'vertical'
         },
@@ -466,17 +469,19 @@ function seedDatabase() {
           palavra: 'BANDEIRA',
           dica: 'Pedaço de pano colorido para enfeitar.',
           x: 0,
-          y: 6,
+          y: 5,
           orientacao: 'horizontal'
         },
+
+        //FASE 3
         {
           mundo: 3,
           fase: 3,
           palavra: 'BALÃO',
           dica: 'Leve e cheio de ar, flutua na festa.',
-          x: 0,
+          x: 6,
           y: 0,
-          orientacao: 'horizontal'
+          orientacao: 'vertical'
         },
         {
           mundo: 3,
@@ -484,16 +489,16 @@ function seedDatabase() {
           palavra: 'ESTRELA',
           dica: 'Brilha no céu e também em decorações.',
           x: 0,
-          y: 0,
-          orientacao: 'vertical'
+          y: 1,
+          orientacao: 'horizontal'
         },
         {
           mundo: 3,
           fase: 3,
           palavra: 'CORDA',
           dica: 'Usada para amarrar ou pendurar coisas.',
-          x: 0,
-          y: 0,
+          x: 1,
+          y: 6,
           orientacao: 'horizontal'
         },
         {
@@ -501,8 +506,8 @@ function seedDatabase() {
           fase: 3,
           palavra: 'TECIDO',
           dica: 'Pano usado para fazer toalhas de mesa.',
-          x: 0,
-          y: 0,
+          x: 2,
+          y: 1,
           orientacao: 'vertical'
         },
         {
@@ -511,16 +516,18 @@ function seedDatabase() {
           palavra: 'GUIZO',
           dica: 'Pequena esfera de metal que faz barulho.',
           x: 0,
-          y: 0,
+          y: 4,
           orientacao: 'horizontal'
         },
+
+        //FASE 4
         {
           mundo: 3,
           fase: 4,
           palavra: 'GLITTER',
           dica: 'Pó brilhante usado para decorar.',
-          x: 0,
-          y: 0,
+          x: 1,
+          y: 7,
           orientacao: 'horizontal'
         },
         {
@@ -528,17 +535,17 @@ function seedDatabase() {
           fase: 4,
           palavra: 'POMPOM',
           dica: 'Bolinha fofa de lã ou papel.',
-          x: 0,
-          y: 0,
-          orientacao: 'vertical'
+          x: 2,
+          y: 2,
+          orientacao: 'horizontal'
         },
         {
           mundo: 3,
           fase: 4,
           palavra: 'FITAS',
           dica: 'Tiras compridas e coloridas para enfeitar.',
-          x: 0,
-          y: 0,
+          x: 6,
+          y: 4,
           orientacao: 'horizontal'
         },
         {
@@ -546,7 +553,7 @@ function seedDatabase() {
           fase: 4,
           palavra: 'LUZES',
           dica: 'Fios com pequenas lâmpadas que acendem.',
-          x: 0,
+          x: 10,
           y: 0,
           orientacao: 'vertical'
         },
@@ -555,8 +562,8 @@ function seedDatabase() {
           fase: 4,
           palavra: 'LANTEJOULA',
           dica: 'Pequeno disco brilhante para costurar em roupas.',
-          x: 0,
-          y: 0,
+          x: 3,
+          y: 6,
           orientacao: 'horizontal'
         },
         {
@@ -564,8 +571,8 @@ function seedDatabase() {
           fase: 4,
           palavra: 'CONFETE',
           dica: 'Pequenos pedaços de papel coloridos jogados em festas.',
-          x: 0,
-          y: 0,
+          x: 6,
+          y: 1,
           orientacao: 'vertical'
         },
         {
@@ -574,16 +581,18 @@ function seedDatabase() {
           palavra: 'GUIRLANDA',
           dica: 'Círculo de flores ou ramos para enfeitar portas.',
           x: 0,
-          y: 0,
+          y: 3,
           orientacao: 'horizontal'
         },
+
+        //FASE 5
         {
           mundo: 3,
           fase: 5,
           palavra: 'DECORAÇÃO',
           dica: 'O ato de enfeitar um ambiente.',
-          x: 0,
-          y: 0,
+          x: 3,
+          y: 1,
           orientacao: 'horizontal'
         },
         {
@@ -592,24 +601,24 @@ function seedDatabase() {
           palavra: 'BANDEIRINHAS',
           dica: 'Pequenas bandeiras de papel unidas por um cordão.',
           x: 0,
-          y: 0,
-          orientacao: 'vertical'
+          y: 4,
+          orientacao: 'horizontal'
         },
         {
           mundo: 3,
           fase: 5,
           palavra: 'ENFEITE',
           dica: 'Qualquer objeto usado para embelezar.',
-          x: 0,
-          y: 0,
-          orientacao: 'horizontal'
+          x: 4,
+          y: 1,
+          orientacao: 'vertical'
         },
         {
           mundo: 3,
           fase: 5,
           palavra: 'COLORIDO',
           dica: 'Que tem muitas cores.',
-          x: 0,
+          x: 6,
           y: 0,
           orientacao: 'vertical'
         },
@@ -618,7 +627,7 @@ function seedDatabase() {
           fase: 5,
           palavra: 'PISCA',
           dica: 'Luz que acende e apaga.',
-          x: 0,
+          x: 3,
           y: 0,
           orientacao: 'horizontal'
         },
@@ -627,18 +636,18 @@ function seedDatabase() {
           fase: 5,
           palavra: 'FLORIDO',
           dica: 'Que está coberto de flores.',
-          x: 0,
-          y: 0,
-          orientacao: 'vertical'
+          x: 4,
+          y: 3,
+          orientacao: 'horizontal'
         },
         {
           mundo: 3,
           fase: 5,
           palavra: 'ARCO',
           dica: 'Estrutura curvada, muitas vezes com balões.',
-          x: 0,
-          y: 0,
-          orientacao: 'horizontal'
+          x: 10,
+          y: 4,
+          orientacao: 'vertical'
         }
     ];
 
@@ -674,9 +683,10 @@ function seedDatabase() {
       });
       stmtItens.finalize();
 
-      //LÓGICA DE INSERÇÃO PARA A CRUZADINHA ADICIONADA AQUI 
-      const stmtCruzadinhas = db.prepare("INSERT INTO cruzadinhas (mundo, fase, palavra, dica, posicao_x, posicao_y, orientacao) VALUES (?, ?, ?, ?, ?, ?, ?)");
+     const stmtCruzadinhas = db.prepare("INSERT INTO cruzadinhas (mundo, fase, palavra, dica, posicao_x, posicao_y, orientacao) VALUES (?, ?, ?, ?, ?, ?, ?)");
       cruzadinhasData.forEach(item => {
+        // ✨ CORREÇÃO DEFINITIVA APLICADA AQUI ✨
+        // Usando item.x e item.y para corresponder aos dados da constante cruzadinhasData
         stmtCruzadinhas.run(item.mundo, item.fase, item.palavra, item.dica, item.x, item.y, item.orientacao);
       });
       stmtCruzadinhas.finalize((err) => {
