@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Mundo1_Gameplay from '../components/Mundo1_Gameplay';
 import Mundo2_Gameplay from '../components/Mundo2_Gameplay';
+import Mundo3_Gameplay from '../components/Mundo3_Gameplay';
 import Modal from "../components/Modal.jsx";
 import ScoreDisplay from '../components/ScoreDisplay.jsx';
 import { salvarProgresso, buscarTotalEstrelas } from "../services/apiProgresso.js";
@@ -112,6 +113,8 @@ function Fase() {
         return <Mundo1_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
       case 2:
         return <Mundo2_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
+      case 3: 
+        return <Mundo3_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
       default:
         return <div>Mundo não encontrado!</div>;
     }
@@ -161,7 +164,7 @@ function Fase() {
       </Modal>
 
       <Modal isOpen={isFimDoMundoOpen} 
-      onClose={handleVoltarAoMapa} // Pode reusar a função de voltar ao mapa
+      onClose={handleVoltarAoMapa}
       variant="feedback">
         <div className="feedback-content">
           <div className="feedback-stats">
