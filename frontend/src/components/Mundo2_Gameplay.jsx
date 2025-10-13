@@ -266,7 +266,7 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
                 )}
             </Modal>
 
-            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
+            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
                 <div className="btn-level-grid">
                     <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundoId } })}>🏠</button>
                     <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
