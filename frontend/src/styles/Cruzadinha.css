@@ -94,7 +94,7 @@
     width: 75%;
 }
 
-.timer{
+.cruzadinha-timer{
   display: flex;
   align-items: center;
   position: relative;
@@ -104,13 +104,13 @@
     width: 10rem; /* Ajuste o tamanho da imagem do timer */
 }
 
-.seconds{
+.cruzadinha-seconds{
     position: absolute;
     font-size: 1.8rem;
     color: #FFFFFF;
     font-family: "Bangers", system-ui;
     left: 50%;
-    top: 50%;
+    top: 45%;
     transform: translate(-50%, -50%);
 }
 
@@ -180,6 +180,27 @@
     font-weight: bold;
 }
 
+/* --- ✅ ESTILIZAÇÃO DA SCROLLBAR --- */
+.placa-dicas ul::-webkit-scrollbar {
+  width: 12px;
+}
+
+.placa-dicas ul::-webkit-scrollbar-track {
+  background: #fdf3d8; /* Cor de fundo da trilha da scrollbar */
+  border-radius: 10px;
+}
+
+.placa-dicas ul::-webkit-scrollbar-thumb {
+  background-color: #c2a36b; /* Cor da barra de rolagem */
+  border-radius: 10px;
+  border: 3px solid #fdf3d8; /* Cria uma borda interna */
+}
+
+.placa-dicas ul::-webkit-scrollbar-thumb:hover {
+  background-color: #a1884f; /* Cor da barra ao passar o mouse */
+}
+
+
 /* --- Área da Cruzadinha (Direita) --- */
 .cruzadinha-grid-container {
     margin-top: 5rem;
@@ -203,7 +224,7 @@
 
 .cruzadinha-grid {
     display: grid;
-    gap: 1px;
+    gap: 3px;
 }
 
 .grid-cell {
@@ -211,8 +232,8 @@
     height: 43px;
     background-color: white;
     border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.205);
-    border-radius: 5px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
     position: relative;
     transition: background-color 0.3s;
 }
@@ -254,15 +275,25 @@
 @keyframes shake-error { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
 /* --- Telas de Carregamento/Erro --- */
-.loading-screen, .error-screen { 
-    width: 100vw; 
-    height: 100vh; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    font-size: 2rem; 
-    color: white; 
-    background-color: #46CAC6; 
+.loading-screen, .error-screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Bangers', sans-serif;
+
+    /* --- Alterações aqui --- */
+    background-color: #f0f0f0; /* Uma cor de fundo para o caso da imagem não carregar */
+    background-image: url('/loading-frog.svg');
+    background-position: center; /* Centraliza a imagem */
+    background-repeat: no-repeat; /* Evita que a imagem se repita */
+    /* background-size: contain; */ /* Opcional: descomente para ajustar o tamanho da imagem */
 }
 
 
