@@ -143,14 +143,14 @@
 
 .placa-dicas {
     width: 320px;
-    height: 400px;
+    height: 390px;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     padding: 60px 30px 30px;
     box-sizing: border-box;
     position: absolute;
-    top: 240px;
+    top: 210px;
     left: 75px;
 }
 
@@ -182,6 +182,7 @@
 
 /* --- Área da Cruzadinha (Direita) --- */
 .cruzadinha-grid-container {
+    margin-top: 5rem;
     position: relative;
 }
 
@@ -262,4 +263,174 @@
     font-size: 2rem; 
     color: white; 
     background-color: #46CAC6; 
+}
+
+
+@media (height: 1366px) {
+    .cruzadinha-header{
+        top: -12rem;
+    }
+    .sapo-personagem{
+        left: 23rem;
+    }
+    .placa-dicas {
+        left: 23rem;
+    }
+    .cruzadinha-grid-container {
+        top: 15rem;
+        left: -5rem;
+        transform: scale(1.4);
+    }
+}
+
+@media (max-width: 1024px) {
+    .cruzadinha-grid-container{
+        left: 8rem;
+    }
+}
+
+
+/* Para Tablets e telas menores */
+@media (max-width: 821px) {
+    .cruzadinha-main-content {
+        justify-content: end;
+        margin-top: 80px;
+        gap: 1rem;
+    }
+
+    .cruzadinha-header {
+        padding: 1rem;
+        top: -12rem;
+    }
+
+    .dicas-painel-container {
+        width: 40%;
+        height: auto;
+    }
+
+    .sapo-personagem{
+        left: 16rem;
+    }
+
+    .placa-dicas {
+        left: 16rem;
+    }
+
+    .placa-dicas li {
+        font-size: 0.9rem;
+        padding: 0.2rem;
+    }
+
+    .cruzadinha-grid-container {
+        position: absolute;
+        top: 40rem;
+        left: 6rem;
+        transform: scale(1.2);
+    }
+}
+
+/* Para Celulares */
+@media (max-width: 768px) {
+    .cruzadinha-header {
+        padding: 0.5rem 1rem;
+        top: -5rem;
+    }
+    .level-settings-btn {
+        width: 50px;
+        height: 50px;
+    }
+    .timer img {
+        width: 8rem;
+    }
+    .seconds {
+        font-size: 1.5rem;
+    }
+
+    .cruzadinha-main-content {
+        margin-top: 60px;
+        padding: 0.5rem;
+    }
+
+    .sapo-personagem {
+        width: 17rem;
+        position: absolute;
+        left: 16rem;
+        top: 0px;
+    }
+
+    .placa-dicas {
+        height: 320px;
+        width: 270px;
+        position: absolute;
+        top: 12rem;
+        left: 16rem;
+    }
+
+    .cruzadinha-grid-container {
+        transform: scale(1);
+        position: absolute;
+        top: 30rem;
+        left: 10%;
+    }
+}
+
+@media (max-width: 540px) {
+    .sapo-personagem {
+        width: 12rem;
+        position: absolute;
+        left: 12rem;
+    }
+
+    .placa-dicas {
+        height: 280px;
+        width: 200px;
+        position: absolute;
+        top: 7rem;
+        left: 12rem;
+    }
+
+    .cruzadinha-grid-container{
+        transform: scale(0.7);
+        top: 15rem;
+        left: -2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cruzadinha-header {
+        padding-top: 5rem;
+        height: fit-content;
+    }
+
+    .seconds{
+    font-size: 1.2rem;
+    right: 14%;
+    top: 42%
+  }
+
+    .cruzadinha-main-content {
+        margin-top: 50px;
+    }
+    
+    .sapo-personagem {
+        width: 15rem;
+        position: absolute;
+        left: 5rem;
+    }
+
+    .placa-dicas {
+        height: 300px;
+        width: 265px;
+        position: absolute;
+        top: 10rem;
+        left: 4.2rem;
+    }
+
+    /* Reduz ainda mais a grade */
+    .cruzadinha-grid-container {
+        transform: scale(0.7);
+        top: 22rem;
+        left: -6rem;
+        position: fixed;
+    }
 }
