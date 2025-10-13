@@ -8,12 +8,51 @@ import '../styles/Cruzadinha.css';
 
 // --- Constantes ---
 const MUNDO_ID = 3;
+const DOUBLE_CLICK_DELAY = 300; // 300ms para considerar um clique duplo
+
 const formatTime = (timeInMs) => {
     const totalSeconds = Math.floor(timeInMs / 1000);
     const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
     const sec = String(totalSeconds % 60).padStart(2, "0");
     return `${min}:${sec}`;
 };
+
+// Mapeamento COMPLETO de palavras para imagens de dica
+const dicaImagens = {
+    // Fase 1
+    'FITA': '/fita.svg',
+    'FLOR': '/flor.svg',
+    'BOLA': '/bola.svg',
+    // Fase 2
+    'VELA': '/vela.svg',
+    'LAÇO': '/laco.svg',
+    'PAINEL': '/painel.svg',
+    'LÂMPADA': '/lampada.svg',
+    'BANDEIRA': '/bandeira.svg',
+    // Fase 3
+    'BALÃO': '/balao.svg',
+    'ESTRELA': '/estrela.svg',
+    'CORDA': '/corda.svg',
+    'TECIDO': '/tecido.svg',
+    'GUIZO': '/guizo.svg',
+    // Fase 4
+    'GLITTER': '/glitter.svg',
+    'POMPOM': '/pompom.svg',
+    'FITAS': '/fitas.svg',
+    'LUZES': '/pisca-pisca.svg',
+    'LANTEJOULA': '/lantejoula.svg',
+    'CONFETE': '/confete.svg',
+    'GUIRLANDA': '/guirlanda.svg',
+    // Fase 5
+    'DECORAÇÃO': '/decoracao.svg',
+    'BANDEIRINHAS': '/bandeirinhas.svg',
+    'ENFEITE': '/enfeite.svg',
+    'COLORIDO': '/colorido.svg',
+    'PISCA': '/pisca.svg',
+    'FLORIDO': '/florido.svg',
+    'ARCO': '/arco.svg',
+};
+
 
 function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const { faseId } = useParams();
@@ -24,10 +63,11 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const [grid, setGrid] = useState([]);
   const [palavras, setPalavras] = useState([]);
   const [palavraAtiva, setPalavraAtiva] = useState(null);
-  const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 }); // Única fonte de verdade para o tempo
+  const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [celulasComErro, setCelulasComErro] = useState({});
   const inputsRef = useRef({});
+  const lastClickInfoRef = useRef({ time: 0, cellKey: null });
 
   // --- Lógica de Inicialização ---
   const inicializarFase = useCallback(async () => {
@@ -36,7 +76,9 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
       const palavrasDaApi = await buscarCruzadinhaPorFase(MUNDO_ID, faseId);
       if (!palavrasDaApi || palavrasDaApi.length === 0) throw new Error("Nenhuma palavra retornada pela API.");
 
+      const padding = 1;
       let maxX = 0, maxY = 0;
+
       palavrasDaApi.forEach(({ palavra, posicao_x, posicao_y, orientacao }) => {
         if (orientacao === 'horizontal') {
           maxX = Math.max(maxX, posicao_x + palavra.length);
@@ -46,16 +88,19 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
           maxY = Math.max(maxY, posicao_y + palavra.length);
         }
       });
+      
+      const gridWidth = maxX + padding * 2;
+      const gridHeight = maxY + padding * 2;
 
-      const novaGrid = Array.from({ length: maxY }, () => Array(maxX).fill(null));
+      const novaGrid = Array.from({ length: gridHeight }, () => Array(gridWidth).fill(null));
       const palavrasCompletas = palavrasDaApi.map((p, index) => ({
         ...p, id: index, numero: index + 1, estaCompleta: false
       }));
 
       palavrasCompletas.forEach(p => {
         for (let i = 0; i < p.palavra.length; i++) {
-          const x = p.posicao_x + (p.orientacao === 'horizontal' ? i : 0);
-          const y = p.posicao_y + (p.orientacao === 'vertical' ? i : 0);
+          const x = p.posicao_x + padding + (p.orientacao === 'horizontal' ? i : 0);
+          const y = p.posicao_y + padding + (p.orientacao === 'vertical' ? i : 0);
           if (!novaGrid[y][x]) novaGrid[y][x] = { letra: '', palavras: {}, status: 'neutral' };
           novaGrid[y][x].palavras[p.id] = true;
           if (i === 0) novaGrid[y][x].numero = p.numero;
@@ -85,20 +130,68 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
     }
   }, [palavras, estadoJogo, onFaseCompleta, tempo.inicio]);
 
-  useEffect(() => {
-    if (palavraAtiva) {
-      const { posicao_y, posicao_x } = palavraAtiva;
-      inputsRef.current[`${posicao_y}-${posicao_x}`]?.focus();
-    }
-  }, [palavraAtiva]);
-  
   // --- Funções de Manipulação ---
   const handlePausar = () => {
     setEstadoJogo(prev => prev === 'jogando' ? 'pausado' : 'jogando');
     setIsConfigOpen(false);
   };
+
+    const handleFocus = (y, x, cell) => {
+        const now = Date.now();
+        const { time, cellKey } = lastClickInfoRef.current;
+        const currentCellKey = `${y}-${x}`;
+
+        lastClickInfoRef.current = { time: now, cellKey: currentCellKey };
+        
+        const idsDasPalavras = Object.keys(cell.palavras).map(id => parseInt(id));
+        if (idsDasPalavras.length === 0) return;
+
+        const palavrasDaCelula = palavras.filter(p => idsDasPalavras.includes(p.id) && !p.estaCompleta);
+        if (palavrasDaCelula.length === 0) return;
+
+        const isDoubleClick = now - time < DOUBLE_CLICK_DELAY && cellKey === currentCellKey;
+
+        if (isDoubleClick && palavrasDaCelula.length > 1) {
+            const currentIndex = palavrasDaCelula.findIndex(p => p.id === palavraAtiva?.id);
+            const nextIndex = (currentIndex + 1) % palavrasDaCelula.length;
+            setPalavraAtiva(palavrasDaCelula[nextIndex]);
+        } else if (!palavraAtiva || !idsDasPalavras.includes(palavraAtiva.id)) {
+            setPalavraAtiva(palavrasDaCelula[0]);
+        }
+    };
   
-  // (Lógicas de input, keydown e auxiliares permanecem as mesmas)
+    // ✅ **NOVA FUNÇÃO PARA AVANÇAR AUTOMATICAMENTE**
+    const avancarParaProximaPalavra = (palavraRecemCompleta) => {
+        const padding = 1;
+        for (let i = 0; i < palavraRecemCompleta.palavra.length; i++) {
+            const x = palavraRecemCompleta.posicao_x + padding + (palavraRecemCompleta.orientacao === 'horizontal' ? i : 0);
+            const y = palavraRecemCompleta.posicao_y + padding + (palavraRecemCompleta.orientacao === 'vertical' ? i : 0);
+            
+            const celula = grid[y][x];
+            const idsDasPalavras = Object.keys(celula.palavras);
+
+            if (idsDasPalavras.length > 1) { // É uma interseção
+                const idOutraPalavra = idsDasPalavras.find(id => parseInt(id) !== palavraRecemCompleta.id);
+                if (idOutraPalavra) {
+                    const outraPalavra = palavras.find(p => p.id === parseInt(idOutraPalavra));
+                    if (outraPalavra && !outraPalavra.estaCompleta) {
+                        setPalavraAtiva(outraPalavra);
+                        // Foco na primeira célula vazia da nova palavra ativa
+                        for (let j = 0; j < outraPalavra.palavra.length; j++) {
+                            const nextX = outraPalavra.posicao_x + padding + (outraPalavra.orientacao === 'horizontal' ? j : 0);
+                            const nextY = outraPalavra.posicao_y + padding + (outraPalavra.orientacao === 'vertical' ? j : 0);
+                            if (grid[nextY][nextX].letra === '') {
+                                inputsRef.current[`${nextY}-${nextX}`]?.focus();
+                                break; // Para após encontrar a primeira vazia
+                            }
+                        }
+                        return; // Sai da função após encontrar a primeira interseção válida
+                    }
+                }
+            }
+        }
+    };
+
   const handleInputChange = (y, x, value) => {
     if (estadoJogo !== 'jogando') return;
     const letra = value.slice(-1).toUpperCase();
@@ -115,8 +208,10 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
                         const palavraFormada = construirPalavra(palavraObj, novaGrid);
                         if (palavraFormada.length === palavraObj.palavra.length) {
                             if (palavraFormada === palavraObj.palavra) {
-                                palavrasAtualizadas[id] = { ...palavraObj, estaCompleta: true };
+                                const palavraCompleta = { ...palavraObj, estaCompleta: true };
+                                palavrasAtualizadas[id] = palavraCompleta;
                                 atualizarStatusDaGrid(novaGrid, palavraObj, 'correto');
+                                avancarParaProximaPalavra(palavraCompleta); // ✅ CHAMA A NOVA LÓGICA
                             } else {
                                 acionarFeedbackErro(palavraObj);
                             }
@@ -130,7 +225,8 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
     });
     if (letra && palavraAtiva) {
       let nextX = x, nextY = y;
-      const indexNaPalavra = (palavraAtiva.orientacao === 'horizontal') ? x - palavraAtiva.posicao_x : y - palavraAtiva.posicao_y;
+      const padding = 1;
+      const indexNaPalavra = (palavraAtiva.orientacao === 'horizontal') ? x - (palavraAtiva.posicao_x + padding) : y - (palavraAtiva.posicao_y + padding);
       if (indexNaPalavra < palavraAtiva.palavra.length - 1) {
         if (palavraAtiva.orientacao === 'horizontal') nextX++; else nextY++;
         inputsRef.current[`${nextY}-${nextX}`]?.focus();
@@ -154,25 +250,28 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   };
   const construirPalavra = (palavraInfo, gridAtual) => {
     let palavraFormada = '';
+    const padding = 1;
     for (let i = 0; i < palavraInfo.palavra.length; i++) {
-      const x = palavraInfo.posicao_x + (palavraInfo.orientacao === 'horizontal' ? i : 0);
-      const y = palavraInfo.posicao_y + (palavraInfo.orientacao === 'vertical' ? i : 0);
-      palavraFormada += gridAtual[y][x].letra;
+      const x = palavraInfo.posicao_x + padding + (palavraInfo.orientacao === 'horizontal' ? i : 0);
+      const y = palavraInfo.posicao_y + padding + (palavraInfo.orientacao === 'vertical' ? i : 0);
+      palavraFormada += gridAtual[y][x]?.letra || '';
     }
     return palavraFormada;
   };
   const atualizarStatusDaGrid = (grid, palavraInfo, status) => {
+    const padding = 1;
     for (let i = 0; i < palavraInfo.palavra.length; i++) {
-      const x = palavraInfo.posicao_x + (palavraInfo.orientacao === 'horizontal' ? i : 0);
-      const y = palavraInfo.posicao_y + (palavraInfo.orientacao === 'vertical' ? i : 0);
+      const x = palavraInfo.posicao_x + padding + (palavraInfo.orientacao === 'horizontal' ? i : 0);
+      const y = palavraInfo.posicao_y + padding + (palavraInfo.orientacao === 'vertical' ? i : 0);
       if (grid[y][x]) grid[y][x].status = status;
     }
   };
   const acionarFeedbackErro = (palavraInfo) => {
     const celulas = {};
+    const padding = 1;
     for (let i = 0; i < palavraInfo.palavra.length; i++) {
-        const x = palavraInfo.posicao_x + (palavraInfo.orientacao === 'horizontal' ? i : 0);
-        const y = palavraInfo.posicao_y + (palavraInfo.orientacao === 'vertical' ? i : 0);
+        const x = palavraInfo.posicao_x + padding + (palavraInfo.orientacao === 'horizontal' ? i : 0);
+        const y = palavraInfo.posicao_y + padding + (palavraInfo.orientacao === 'vertical' ? i : 0);
         celulas[`${y}-${x}`] = true;
     }
     setCelulasComErro(celulas);
@@ -182,6 +281,8 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   // --- Renderização ---
   if (estadoJogo === 'carregando') return <div className="loading-screen">Carregando Cruzadinha...</div>;
   if (estadoJogo === 'erro') return <div className="error-screen">Erro ao carregar a fase.</div>;
+
+  const padding = 1;
 
   return (
     <section className="cruzadinha-section">
@@ -202,51 +303,68 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             onTempoTick={(ms) => setTempo(t => ({ ...t, decorrido: ms }))}
         />
       
-      <div className="cruzadinha-painel-container">
-        <img src="/painel-cruzadinha.svg" alt="Painel da Cruzadinha" className="painel-bg" />
-        {grid.length > 0 && (
-          <div className="cruzadinha-grid" style={{ gridTemplateColumns: `repeat(${grid[0].length}, 43px)` }}>
-            {grid.map((row, y) => row.map((cell, x) => {
-                if (!cell) return <div key={`${y}-${x}`} className="grid-cell empty" />;
-                const isReadOnly = palavras.some(p => p.estaCompleta && cell.palavras[p.id]);
-                const isActiveWord = palavraAtiva && cell.palavras[palavraAtiva.id];
-                const isError = celulasComErro[`${y}-${x}`];
-                const isCorrect = cell.status === 'correto';
-                const cellClassName = `${isActiveWord ? 'active-word' : ''} ${isError ? 'error' : ''} ${isCorrect ? 'correct' : ''}`;
+        <main className="cruzadinha-main-content">
+            <div className="dicas-painel-container">
+                <img src="/dicas-painel.svg" alt="Sapo Hebert" className="sapo-personagem" />
+                <div className="placa-dicas">
+                    <ul>
+                        {palavras.map(p => (
+                            <li key={p.id} onClick={() => !p.estaCompleta && setPalavraAtiva(p)} className={palavraAtiva?.id === p.id ? 'active' : ''}>
+                                <strong>DICA {p.numero}:</strong> {p.dica}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
 
-                return (
-                  <div key={`${y}-${x}`} className="grid-cell">
-                    {cell.numero && <span className="cell-number">{cell.numero}</span>}
-                    <input
-                      ref={el => inputsRef.current[`${y}-${x}`] = el}
-                      type="text"
-                      maxLength="1"
-                      value={cell.letra}
-                      onChange={(e) => handleInputChange(y, x, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, y, x)}
-                      onFocus={() => {
-                          const idPrimeiraPalavra = Object.keys(cell.palavras)[0];
-                          const palavraClicada = palavras.find(p => p.id == idPrimeiraPalavra);
-                          if (palavraClicada && !palavraClicada.estaCompleta) setPalavraAtiva(palavraClicada);
-                      }}
-                      className={cellClassName}
-                      readOnly={isReadOnly}
-                    />
-                  </div>
-                );
-            }))}
-          </div>
-        )}
-      </div>
+            <div className="cruzadinha-grid-container">
+                {grid.length > 0 && (
+                    <div className="cruzadinha-grid" style={{ gridTemplateColumns: `repeat(${grid[0].length}, 43px)` }}>
+                        {palavras.map(p => {
+                            const imgUrl = dicaImagens[p.palavra];
+                            if (!imgUrl) return null;
+                            const style = p.orientacao === 'horizontal'
+                                ? { top: `${(p.posicao_y + padding) * 43}px`, left: `${(p.posicao_x + padding - 1) * 43}px` }
+                                : { top: `${(p.posicao_y + padding - 1) * 43}px`, left: `${(p.posicao_x + padding) * 43}px` };
+                            return <img key={`dica-${p.id}`} src={imgUrl} alt={`Dica para ${p.palavra}`} id={`dica-${p.palavra}`} className="dica-imagem" style={style} />;
+                        })}
+                        
+                        {grid.map((row, y) => row.map((cell, x) => {
+                            if (!cell) return <div key={`${y}-${x}`} className="grid-cell empty" />;
+                            const isReadOnly = palavras.some(p => p.estaCompleta && cell.palavras[p.id]);
+                            const isActiveWord = palavraAtiva && !palavraAtiva.estaCompleta && cell.palavras[palavraAtiva.id];
+                            const isError = celulasComErro[`${y}-${x}`];
+                            const isCorrect = palavras.some(p => p.estaCompleta && cell.palavras[p.id]);
+                            
+                            let cellClassName = 'grid-cell';
+                            if(isActiveWord) cellClassName += ' active-word';
+                            if(isError) cellClassName += ' error';
+                            if(isCorrect) cellClassName += ' correct';
+                            
+                            return (
+                                <div key={`${y}-${x}`} className={cellClassName}>
+                                    <input
+                                        ref={el => inputsRef.current[`${y}-${x}`] = el}
+                                        type="text"
+                                        maxLength="1"
+                                        value={cell.letra}
+                                        onChange={(e) => handleInputChange(y, x, e.target.value)}
+                                        onKeyDown={(e) => handleKeyDown(e, y, x)}
+                                        onClick={() => handleFocus(y, x, cell)}
+                                        readOnly={isReadOnly}
+                                    />
+                                </div>
+                            );
+                        }))}
+                    </div>
+                )}
+            </div>
+        </main>
 
-      <div className="dica-container">
-        <p>{palavraAtiva ? palavraAtiva.dica : "Selecione uma palavra para ver a dica."}</p>
-      </div>
-
-        <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} title="Pausa" variant="config">
+        <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
             <div className="btn-level-grid">
                 <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } })}>🏠</button>
-                <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : 'Continuar'}</button>
+                <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
                 <button className="btn retry-btn" onClick={inicializarFase}>↩</button>
                 <button className="btn help-btn" onClick={() => navigate('/ajuda')}>ajuda</button>
                 <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}>fechar</button>
