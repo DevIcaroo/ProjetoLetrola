@@ -100,7 +100,7 @@
   position: relative;
 }
 
-.timer img {
+.cruzadinha-timer img {
     width: 10rem; /* Ajuste o tamanho da imagem do timer */
 }
 
@@ -260,7 +260,8 @@
 }
 
 .grid-cell.active-word {
-    background-color: #fcf4d4; /* Amarelo claro para a palavra ativa */
+    background-color: #ffeeac; /* Amarelo claro para a palavra ativa */
+    border: 2px solid #a89663;
 }
 
 .grid-cell.correct input {
