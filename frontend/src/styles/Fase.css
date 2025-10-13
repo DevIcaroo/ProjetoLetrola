@@ -68,6 +68,10 @@ header{
   justify-content: flex-end;
 }
 
+.timer img{
+  width: 50%;
+}
+
 .timer-btn{
   position: absolute;
     z-index: 2;
