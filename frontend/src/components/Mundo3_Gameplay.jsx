@@ -3,12 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { buscarCruzadinhaPorFase } from '../services/apiCruzadinhas';
 import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
-import ScoreDisplay from './ScoreDisplay.jsx';
+import CruzadinhaScoreDisplay from './CruzadinhaScoreDisplay.jsx'; 
 import '../styles/Cruzadinha.css';
 
 // --- Constantes ---
 const MUNDO_ID = 3;
 const DOUBLE_CLICK_DELAY = 300; // 300ms para considerar um clique duplo
+const TEMPO_3_ESTRELAS = 180; // 3 minutos
+const TEMPO_2_ESTRELAS = 360; // 6 minutos
+const TEMPO_1_ESTRELA = 500;  // ~8 minutos
 
 const formatTime = (timeInMs) => {
     const totalSeconds = Math.floor(timeInMs / 1000);
@@ -59,7 +62,8 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const navigate = useNavigate();
 
   // --- Estados do Componente ---
-  const [estadoJogo, setEstadoJogo] = useState('carregando');
+  const [estadoJogo, setEstadoJogo] = useState("carregando");
+  const [dicasTotaisUsadas, setDicasTotaisUsadas] = useState(0);
   const [grid, setGrid] = useState([]);
   const [palavras, setPalavras] = useState([]);
   const [palavraAtiva, setPalavraAtiva] = useState(null);
@@ -68,6 +72,26 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const [celulasComErro, setCelulasComErro] = useState({});
   const inputsRef = useRef({});
   const lastClickInfoRef = useRef({ time: 0, cellKey: null });
+
+    // ✅ **LÓGICA DE FINALIZAÇÃO UNIFICADA**
+    const finalizarFase = useCallback((motivo = 'concluido') => {
+        if (estadoJogo === "finalizado") return;
+        setEstadoJogo("finalizado");
+        
+        const tempoFinalSegundos = Math.floor(tempo.decorrido / 1000);
+        let estrelas = 0;
+        
+        if (motivo !== 'tempo_esgotado') {
+            if (tempoFinalSegundos <= TEMPO_3_ESTRELAS) estrelas = 3;
+            else if (tempoFinalSegundos <= TEMPO_2_ESTRELAS) estrelas = 2;
+            else if (tempoFinalSegundos <= TEMPO_1_ESTRELA) estrelas = 1;
+            
+            if (dicasTotaisUsadas > LIMITE_DICAS) estrelas = Math.max(0, estrelas - 1);
+        }
+
+        onFaseCompleta({ estrelas, tempoConclusao: tempoFinalSegundos });
+
+    }, [estadoJogo, onFaseCompleta, tempo.decorrido, dicasTotaisUsadas]);
 
   // --- Lógica de Inicialização ---
   const inicializarFase = useCallback(async () => {
@@ -111,6 +135,7 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
       setGrid(novaGrid);
       setPalavraAtiva(palavrasCompletas[0]);
       setTempo({ inicio: Date.now(), decorrido: 0 });
+      setDicasTotaisUsadas(0); // Reseta as dicas
       setEstadoJogo('jogando');
     } catch (error) {
       console.error("Erro ao carregar cruzadinha:", error);
@@ -118,23 +143,27 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
     }
   }, [faseId]);
 
-  useEffect(() => {
-    inicializarFase();
-  }, [inicializarFase]);
-  
+    useEffect(() => {
+        if (!jogador) {
+            navigate("/");
+        } else {
+            inicializarFase().catch(error => {
+                console.error("Falha ao inicializar a fase:", error);
+                setEstadoJogo("erro");
+            });
+        }
+    }, [jogador, navigate, inicializarFase]);
+ 
   // --- Efeitos de Jogo ---
   useEffect(() => {
     if (estadoJogo === 'jogando' && palavras.length > 0 && palavras.every(p => p.estaCompleta)) {
-      const tempoFinalMs = Date.now() - tempo.inicio;
-      onFaseCompleta({ estrelas: 3, tempoConclusao: Math.floor(tempoFinalMs / 1000) });
+      finalizarFase('concluido');
     }
-  }, [palavras, estadoJogo, onFaseCompleta, tempo.inicio]);
+  }, [palavras, estadoJogo, finalizarFase]);
 
   // --- Funções de Manipulação ---
-  const handlePausar = () => {
-    setEstadoJogo(prev => prev === 'jogando' ? 'pausado' : 'jogando');
-    setIsConfigOpen(false);
-  };
+  const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
+
 
     const handleFocus = (y, x, cell) => {
         const now = Date.now();
@@ -159,8 +188,7 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             setPalavraAtiva(palavrasDaCelula[0]);
         }
     };
-  
-    // ✅ **NOVA FUNÇÃO PARA AVANÇAR AUTOMATICAMENTE**
+ 
     const avancarParaProximaPalavra = (palavraRecemCompleta) => {
         const padding = 1;
         for (let i = 0; i < palavraRecemCompleta.palavra.length; i++) {
@@ -203,15 +231,15 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             setPalavras(prevPalavras => {
                 const palavrasAtualizadas = [...prevPalavras];
                 idsDasPalavrasAfetadas.forEach(id => {
-                    const palavraObj = palavrasAtualizadas[id];
-                    if (!palavraObj.estaCompleta) {
+                    const palavraObj = palavrasAtualizadas.find(p => p.id === parseInt(id));
+                    if (palavraObj && !palavraObj.estaCompleta) {
                         const palavraFormada = construirPalavra(palavraObj, novaGrid);
                         if (palavraFormada.length === palavraObj.palavra.length) {
                             if (palavraFormada === palavraObj.palavra) {
                                 const palavraCompleta = { ...palavraObj, estaCompleta: true };
-                                palavrasAtualizadas[id] = palavraCompleta;
+                                palavrasAtualizadas[palavrasAtualizadas.findIndex(p => p.id === parseInt(id))] = palavraCompleta;
                                 atualizarStatusDaGrid(novaGrid, palavraObj, 'correto');
-                                avancarParaProximaPalavra(palavraCompleta); // ✅ CHAMA A NOVA LÓGICA
+                                avancarParaProximaPalavra(palavraCompleta);
                             } else {
                                 acionarFeedbackErro(palavraObj);
                             }
@@ -290,16 +318,18 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
                 <img src="/Settings.svg" alt="Configurações" />
             </button>
-            <ScoreDisplay tempoDecorridoMs={tempo.decorrido} />
-            <div className="timer">
+            <CruzadinhaScoreDisplay tempoDecorridoMs={tempo.decorrido} />
+            <div className="cruzadinha-timer">
                 <img src="/timer.svg" alt="Cronômetro" />
-                <p className="seconds">{formatTime(tempo.decorrido)}</p>
+                <p className="cruzadinha-seconds">{formatTime(tempo.decorrido)}</p>
             </div>
         </header>
 
         <Cronometro
             isPaused={estadoJogo !== 'jogando'}
             tempoInicioFase={tempo.inicio}
+            limiteTempoFase={TEMPO_1_ESTRELA * 1000}
+            onFaseTermina={() => finalizarFase('tempo_esgotado')}
             onTempoTick={(ms) => setTempo(t => ({ ...t, decorrido: ms }))}
         />
       

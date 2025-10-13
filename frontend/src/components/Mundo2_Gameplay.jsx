@@ -187,10 +187,8 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
         }
     }, [puzzle.item]);
 
-    const handlePausar = useCallback(() => {
-        setEstadoJogo(prev => (prev === 'jogando' ? 'pausado' : 'jogando'));
-        setIsConfigOpen(false);
-    }, []);
+    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
+
 
     useEffect(() => {
         if (!jogador) navigate("/");
