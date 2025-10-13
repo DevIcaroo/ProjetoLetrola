@@ -261,7 +261,7 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
                         <img src={puzzle.item.imgSrc} alt={puzzle.item.nome} className="puzzle-bebida-img" />
                         <PuzzleTroca palavraCorreta={puzzle.item.nome} onComplete={handleAcertoPuzzle} />
                         <div className="balao-dicas">
-                            <img src="/baloon.svg" alt="balão de dica" className="baloon" />
+                            <img src="/baloon-bear.svg" alt="balão de dica" className="baloon" />
                             <p id="hint-text">{dicaExibida}</p>
                         </div>
                     </div>
