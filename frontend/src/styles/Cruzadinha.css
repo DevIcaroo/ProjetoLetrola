@@ -1,68 +1,3 @@
-/* frontend/src/styles/Cruzadinha.css */
-header{
-  position: absolute;
-  z-index: 2;
-  bottom: 75%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: center;
-  padding: 1rem;
-  width: 100vw;
-  align-items: center;
-}
-
-/*botâo de configurações de fase*/
-.level-settings-btn{
-  width: 60px;
-  height: 60px;
-  border: none;
-  border-radius: 10px;
-  background-color: #FABA00;
-  color: white;
-  font-size: 30px;
-  cursor: pointer;
-  border-bottom: #9F5704 5px solid;
-  border-left: #9F5704 5px solid;
-}
-
-.level-settings-btn img{
-    width: 75%;
-    z-index: 1;
-    position: relative;
-}
-
-/*timer*/
-.timer{
-  display: flex;
-  justify-content: flex-end;
-}
-
-.timer-btn{
-  position: absolute;
-    z-index: 2;
-    bottom: 7%;
-    left: 35%;
-    padding: 12px 80px;
-    border-radius: 30px;
-    border: none;
-    background-color: #FF2526;
-    color: white;
-    font-size: 40px;
-    cursor: pointer;
-    border-bottom: #DA1213 8px solid;
-    border-left: #DA1213 8px solid;
-}
-
-.seconds{
-    position: absolute;
-    top: 35%;
-    right: 7%;
-    font-size: 2rem;
-    color: #FFFFFF;
-    font-family: "Bangers", system-ui;
-    padding: 0.2rem;
-}
-
 /*--------------botões modal config geral---------------- */
 .btn-level-grid{
     display: grid;
@@ -117,126 +52,214 @@ header{
   background-color: #FE4590 ;
   border-bottom: #CA3F78 6px solid;
 }
+/* frontend/src/styles/Cruzadinha.css */
 
+/* --- Layout Geral e Fundo --- */
 .cruzadinha-section {
     width: 100vw;
     height: 100vh;
-    background-image: url('/cruzadinha-bg.svg');
+    background-image: url('/cruzadinha-bg.svg'); /* Fundo da lagoa */
     background-size: cover;
     background-position: center;
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start; /* Alinha o conteúdo no topo */
+    flex-direction: column; /* Organiza header e main em coluna */
     align-items: center;
     font-family: 'Fredoka', sans-serif;
     overflow: hidden;
-    position: relative;
 }
 
-/* ✨ NOVA ÁREA DE JOGO ✨ */
-.cruzadinha-painel-container {
-    position: relative;
-    margin-top: 3vh; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 50vw;
-    max-width: 900px;
-}
-
-.painel-bg {
+/* --- Cabeçalho --- */
+.cruzadinha-header {
     width: 100%;
-    height: auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    z-index: 10;
 }
 
-.cruzadinha-grid {
-    display: grid;
+.level-settings-btn{
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 10px;
+  background-color: #FABA00;
+  cursor: pointer;
+  border-bottom: #9F5704 5px solid;
+  border-left: #9F5704 5px solid;
+}
+
+.level-settings-btn img{
+    width: 75%;
+}
+
+.timer{
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.timer img {
+    width: 10rem; /* Ajuste o tamanho da imagem do timer */
+}
+
+.seconds{
     position: absolute;
-    top: 50%;
+    font-size: 1.8rem;
+    color: #FFFFFF;
+    font-family: "Bangers", system-ui;
     left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
 }
 
+/* --- Conteúdo Principal --- */
+.cruzadinha-main-content {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-grow: 1;
+    justify-content: space-around;
+    align-items: center;
+    gap: 2rem;
+    padding: 1rem;
+}
 
-.grid-cell {
-    width: 40px;
-    height: 40px;
-    position: relative;
-    background-image: url('/vit-regia.svg');
+/* --- Painel de Dicas (Esquerda) --- */
+.dicas-painel-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.sapo-personagem {
+    width: 20rem;
+    position: absolute;
+    top: -20px;
+    left: 76px;
+}
+
+.placa-dicas {
+    width: 320px;
+    height: 400px;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+    padding: 60px 30px 30px;
+    box-sizing: border-box;
+    position: absolute;
+    top: 240px;
+    left: 75px;
+}
+
+.placa-dicas ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    overflow-y: auto;
+    color: #5d3a1a;
+}
+
+.placa-dicas li {
+    padding: 0.3rem;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.placa-dicas li:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.placa-dicas li.active {
+    background-color: #fff8e2; /* Cor de destaque para a dica ativa */
+    font-weight: bold;
+}
+
+/* --- Área da Cruzadinha (Direita) --- */
+.cruzadinha-grid-container {
+    position: relative;
+}
+
+.dica-imagem {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+}
+
+#dica-ARCO{
+    top: 130px !important;
+}
+
+#dica-ENFEITE{
+    top: -10px !important;
+}
+
+
+.cruzadinha-grid {
+    display: grid;
+    gap: 1px;
+}
+
+.grid-cell {
+    width: 43px;
+    height: 43px;
+    background-color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.205);
+    border-radius: 5px;
+    position: relative;
+    transition: background-color 0.3s;
 }
 
 .grid-cell.empty {
     background: transparent;
+    border: none;
+    box-shadow: none;
+    pointer-events: none; /* Desabilita interação */
 }
 
 .grid-cell input {
     width: 100%;
     height: 100%;
     text-align: center;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-family: 'Bangers', cursive;
     text-transform: uppercase;
     border: none;
     background-color: transparent;
     outline: none;
-    color: #fff;
-    caret-color: #fff;
-}
-
-.grid-cell .cell-number {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    font-size: 0.8rem;
-    font-weight: bold;
     color: #4a2e0a;
-    pointer-events: none;
+    caret-color: #4a2e0a;
 }
 
-.grid-cell input.active-word {
-    /* Efeito sutil para a palavra ativa, pode ser um brilho */
-    filter: brightness(1.2);
+.grid-cell.active-word {
+    background-color: #fcf4d4; /* Amarelo claro para a palavra ativa */
 }
 
-.grid-cell input.correct {
-    color: #4CAF50; /* Cor da letra correta */
-    text-shadow: 1px 1px 2px #fff;
+.grid-cell.correct input {
+    color: #2e7d32; /* Verde para letra correta */
 }
 
-.grid-cell input.error {
+.grid-cell.error {
     animation: shake-error 0.5s;
-    background-color: rgba(255, 82, 82, 0.5); /* Fundo vermelho transparente para erro */
-    border-radius: 50%;
+    background-color: #ffcdd2; /* Fundo vermelho claro para erro */
 }
-
-/* ✨ NOVA PLACA DE DICA ✨ */
-.dica-container {
-    position: absolute;
-    bottom: 0vh;
-    width: 20rem;
-    height: 10rem;
-    background-image: url('/dica.svg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px 40px;
-    text-align: center;
-}
-
-.dica-container p {
-    font-family: 'Bangers', cursive;
-    font-size: 1rem;
-    color: white;
-    text-shadow: 2px 2px 4px #000;
-}
-
-
 
 @keyframes shake-error { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-.loading-screen, .error-screen { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: white; background-color: #46CAC6; }
+
+/* --- Telas de Carregamento/Erro --- */
+.loading-screen, .error-screen { 
+    width: 100vw; 
+    height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-size: 2rem; 
+    color: white; 
+    background-color: #46CAC6; 
+}
