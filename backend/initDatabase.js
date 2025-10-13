@@ -645,7 +645,7 @@ function seedDatabase() {
           fase: 5,
           palavra: 'ARCO',
           dica: 'Estrutura curvada, muitas vezes com balões.',
-          x: 2,
+          x: 1,
           y: 4,
           orientacao: 'vertical'
         }
