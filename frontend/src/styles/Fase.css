@@ -576,6 +576,12 @@ header{
   }
 }
 
+@media (height: 1366px) {
+  .vara-container{
+    top: 10rem;
+  }
+}
+
 @media (width: 1024px){
   .fruit-slots{
     margin-top: 11rem;
@@ -583,6 +589,20 @@ header{
 
   .vara-container{
     top: 3.8rem;
+  }
+}
+
+@media (width: 820px) {
+  .vara-container{
+    top: 11.8rem;
+    left: 6.2rem;
+  }
+}
+
+@media (width: 768px) {
+  .vara-container{
+    top: 10rem;
+    left: 5rem;
   }
 }
 
