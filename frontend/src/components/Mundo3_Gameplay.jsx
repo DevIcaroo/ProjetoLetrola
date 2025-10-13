@@ -63,7 +63,6 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
 
   // --- Estados do Componente ---
   const [estadoJogo, setEstadoJogo] = useState("carregando");
-  const [dicasTotaisUsadas, setDicasTotaisUsadas] = useState(0);
   const [grid, setGrid] = useState([]);
   const [palavras, setPalavras] = useState([]);
   const [palavraAtiva, setPalavraAtiva] = useState(null);
@@ -73,7 +72,6 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const inputsRef = useRef({});
   const lastClickInfoRef = useRef({ time: 0, cellKey: null });
 
-    // ✅ **LÓGICA DE FINALIZAÇÃO UNIFICADA**
     const finalizarFase = useCallback((motivo = 'concluido') => {
         if (estadoJogo === "finalizado") return;
         setEstadoJogo("finalizado");
@@ -86,12 +84,11 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             else if (tempoFinalSegundos <= TEMPO_2_ESTRELAS) estrelas = 2;
             else if (tempoFinalSegundos <= TEMPO_1_ESTRELA) estrelas = 1;
             
-            if (dicasTotaisUsadas > LIMITE_DICAS) estrelas = Math.max(0, estrelas - 1);
         }
 
         onFaseCompleta({ estrelas, tempoConclusao: tempoFinalSegundos });
 
-    }, [estadoJogo, onFaseCompleta, tempo.decorrido, dicasTotaisUsadas]);
+    }, [estadoJogo, onFaseCompleta, tempo.decorrido]);
 
   // --- Lógica de Inicialização ---
   const inicializarFase = useCallback(async () => {
@@ -135,7 +132,6 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
       setGrid(novaGrid);
       setPalavraAtiva(palavrasCompletas[0]);
       setTempo({ inicio: Date.now(), decorrido: 0 });
-      setDicasTotaisUsadas(0); // Reseta as dicas
       setEstadoJogo('jogando');
     } catch (error) {
       console.error("Erro ao carregar cruzadinha:", error);
@@ -162,7 +158,7 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   }, [palavras, estadoJogo, finalizarFase]);
 
   // --- Funções de Manipulação ---
-  const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
+    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
 
 
     const handleFocus = (y, x, cell) => {
