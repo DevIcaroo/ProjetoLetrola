@@ -67,11 +67,36 @@ export const mundos = {
       },
       {
         imagem: "/frog-story-3.svg",
-        dialogo: "As palavras dos enfeites ficaram embaralhadas! Agora não sei mais o nome de cada decoração...",
+        dialogo: "As palavras dos enfeites voaram e ficaram embaralhadas! Agora não sei mais o nome de cada decoração...",
       },
       {
         imagem: "/frog-story-4.svg",
         dialogo: "Você pode me ajudar a desembaralhar as palavras? Assim a festa vai ficar linda e brilhante!",
+      },
+    ]
+},
+  4: {
+    nome: "Savana mágica",
+    mapa: {
+      imagem: "/map-4.svg", // Imagem de fundo do mapa 2
+    },
+    mensagemFeedback: "Você aprendeu a escrever os nomes das decorações!",
+    historia: [
+      {
+        imagem: "/tiger-story-1.svg",
+        dialogo: "Oi, eu sou o Tigre! O guardião mais corajoso e imponente da savana!",
+      },
+      {
+        imagem: "/tiger-story-2.svg",
+        dialogo: "Eu vou trazer as sobremesas mais gostosas da Festa na Selva! bolos, pudins e brigadeiros e mais!",
+      },
+      {
+        imagem: "/tiger-story-3.svg",
+        dialogo: "Mas no caminho... as palavras com os nomes das sobremesas se esconderam entre as letras da savana...",
+      },
+      {
+        imagem: "/tiger-story-4.svg",
+        dialogo: "Você me ajuda a encontrar todas as palavras? Assim nossa mesa vai ficar docinha e pronta pra festa!",
       },
     ]
 },
