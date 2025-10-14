@@ -8,6 +8,7 @@ import PuzzleTroca from './PuzzleTroca.jsx';
 import { buscarItensPorFase } from "../services/apiItensFase.js";
 
 // --- Constantes de Configuração do Jogo ---
+const MUNDO_ID = 2;
 const TEMPO_3_ESTRELAS = 60;
 const TEMPO_2_ESTRELAS = 180;
 const TEMPO_1_ESTRELA = 300;
@@ -268,7 +269,7 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
 
             <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
                 <div className="btn-level-grid">
-                    <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundoId } })}>🏠</button>
+                    <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } })}>🏠</button>
                     <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
                     <button className="btn retry-btn" onClick={inicializarFase}>↩</button>
                     <button className="btn help-btn" onClick={() => navigate('/ajuda')}>ajuda</button>
