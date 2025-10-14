@@ -10,8 +10,8 @@
 }
 
 .modal-bg{
-    width: 20rem;
-    height: 20rem;
+    width: 23rem;
+    height: 30rem;
     position: absolute;
     z-index: -1;
 }
