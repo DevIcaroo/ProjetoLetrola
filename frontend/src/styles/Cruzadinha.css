@@ -280,7 +280,7 @@
 @keyframes shake-error { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
 /* --- Telas de Carregamento/Erro --- */
-.loading-screen, .error-screen {
+.loading-screen-3, .error-screen-3 {
     width: 100vw;
     height: 100vh;
     display: flex;
@@ -292,13 +292,10 @@
     top: 0;
     left: 0;
     font-family: 'Bangers', sans-serif;
-
-    /* --- Alterações aqui --- */
-    background-color: #f0f0f0; /* Uma cor de fundo para o caso da imagem não carregar */
+    background-color: #f0f0f0;
     background-image: url('/loading-frog.svg');
-    background-position: center; /* Centraliza a imagem */
-    background-repeat: no-repeat; /* Evita que a imagem se repita */
-    /* background-size: contain; */ /* Opcional: descomente para ajustar o tamanho da imagem */
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 
