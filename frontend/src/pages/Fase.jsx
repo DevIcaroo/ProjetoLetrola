@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Mundo1_Gameplay from '../components/Mundo1_Gameplay';
 import Mundo2_Gameplay from '../components/Mundo2_Gameplay';
 import Mundo3_Gameplay from '../components/Mundo3_Gameplay';
+import Mundo4_Gameplay from '../components/Mundo4_Gameplay';
 import Modal from "../components/Modal.jsx";
 import ScoreDisplay from '../components/ScoreDisplay.jsx';
 import { salvarProgresso, buscarTotalEstrelas } from "../services/apiProgresso.js";
@@ -64,7 +65,7 @@ function Fase() {
     } else {
         // Se for uma fase normal
         setResultadoFinal({
-            title: resultado.estrelas > 0 ? "Fase Concluída!" : "Tempo Esgotado!",
+            title: resultado.estrelas > 0 ? "" : "Tempo Esgotado!",
             estrelas: resultado.estrelas,
             tempoConclusao: resultado.tempoConclusao,
             proximaMeta: `Para 3 estrelas, termine em ${formatTime(TEMPO_3_ESTRELAS, 's')}.`
@@ -115,6 +116,8 @@ function Fase() {
         return <Mundo2_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
       case 3: 
         return <Mundo3_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
+      case 4:
+        return <Mundo4_Gameplay key={gameKey} jogador={jogador} onFaseCompleta={handleFaseCompleta} />;
       default:
         return <div>Mundo não encontrado!</div>;
     }
@@ -135,10 +138,9 @@ function Fase() {
       <Modal isOpen={isFeedbackOpen} onClose={handleVoltarAoMapa} title={resultadoFinal.title} variant="feedback">
         <div className="feedback-content">
           <div className="feedback-stats">
-            <p className="time-status">Seu tempo:
-              <span>{formatTime(resultadoFinal.tempoConclusao, 's')}</span>
+            <p className="time-status">Seu tempo: 
+               <span>{formatTime(resultadoFinal.tempoConclusao, 's')}</span>
             </p>
-            <ScoreDisplay starsEarned={resultadoFinal.estrelas} />
             <p>{resultadoFinal.proximaMeta}</p>
           </div>
           <div className="feedback-info">
