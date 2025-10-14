@@ -80,7 +80,7 @@ export const mundos = {
     mapa: {
       imagem: "/map-4.svg", // Imagem de fundo do mapa 2
     },
-    mensagemFeedback: "Você aprendeu a escrever os nomes das decorações!",
+    mensagemFeedback: "Você encontrou os nomes das sobremesas!",
     historia: [
       {
         imagem: "/tiger-story-1.svg",
