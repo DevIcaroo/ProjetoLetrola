@@ -1,0 +1,31 @@
+.mundo4-section {
+    width: 100vw;
+    height: 100vh;
+    background-image: url('/cacapalavras-bg.svg'); /* Usando o mapa do mundo 4 como fundo */
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Fredoka', sans-serif;
+    overflow: hidden;
+}
+
+.mundo4-header {
+    width: 100%;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    top: -10%;
+    z-index: 10;
+}
+
+.mundo4-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    margin-top: 80px; /* Espaço para o header */
+}
