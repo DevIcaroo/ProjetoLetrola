@@ -200,6 +200,7 @@ header{
   align-items: center;
   gap: 1rem;
   padding: 1rem;
+  margin-bottom: 5rem;
   margin-top: 5rem; /* Espaço para o título do modal */
   color: #763918;
 }
@@ -230,7 +231,8 @@ header{
 
 .feedback-stats span {
   font-weight: bold;
-  color: #B3CD45;
+  color: #faf4d3;
+  letter-spacing: 2px;
 }
 
 .feedback-info {
