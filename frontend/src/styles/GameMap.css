@@ -125,13 +125,13 @@
   transform: none;
 }
 
-.mundo-1-btn, .mundo-2-btn, .mundo-3-btn, .mundo-4-btn{
+.mundo-1-btn, .mundo-2-btn, .mundo-3-btn, .mundo-4-btn, .mundo-5-btn{
     position: relative;
     padding: 0.4rem 1.5rem;
     border-radius: 8px;
     border: none;
     color: #FFFFFF;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     cursor: pointer;
 }
 
@@ -153,6 +153,11 @@
 .mundo-4-btn{
     background-color: #FE4590;
     border-bottom: #DA1F6B 6px solid;
+}
+
+.mundo-5-btn{
+    background-color: #8900fa;
+    border-bottom: #6200b3 6px solid;
 }
 
 .levels-container{
@@ -287,6 +292,13 @@
 .mundo-3-layout .level-4 { top: 23%; right: 35%; cursor: pointer; }
 .mundo-3-layout .level-5 { top: 1%;  right: 45%; cursor: pointer; }
 
+.mundo-4-layout .level-1 { top: 80%; left: 55%; cursor: pointer; }
+.mundo-4-layout .level-2 { top: 54%; left: 15%; cursor: pointer; }
+.mundo-4-layout .level-3 { top: 35%; right: 22%; cursor: pointer; }
+.mundo-4-layout .level-4 { top: 10%;  right: 40%; cursor: pointer; }
+.mundo-4-layout .level-5 { top: 2%; right: 48%; cursor: pointer; }
+
+
 .locked{
     filter: grayscale(100%);
 }
@@ -314,6 +326,23 @@
     display: block;
 }
 
+@media (height: 1366px) {
+    .mundo-3-layout .level-2{ top: 60%; left: 35%;}
+    .mundo-3-layout .level-3{ top: 50%; right: 15%;}
+    .mundo-3-layout .level-4{ top: 35%; right: 20%;}
+    .mundo-3-layout .level-5{ top: 20%; right: 40%;}
+    
+}
+
+@media (width: 1024px) {
+    .mundo-3-layout .level-1{ top: 70%; left: 45%;}
+    .mundo-3-layout .level-2{ top: 50%; left: 15%;}
+    .mundo-3-layout .level-3{ top: 43%; left: 14%;}
+    .mundo-3-layout .level-4{ top: 30%; right: 25%;}
+    .mundo-3-layout .level-5{ top: 5%; right: 43%;}
+    
+}
+
 @media (max-width: 600px){
     .settings-btn-right, .world-btn-right{
         left: 80%;
@@ -334,5 +363,24 @@
     .mundo-2-layout .level-4{right: 50%; top: 20%;}
     .mundo-2-layout .level-5{top: 13%; right: 25%;}
 
-
+    .mundo-3-layout .level-1{ top: 70%; left: 30%;}
+    .mundo-3-layout .level-2{ top: 55%; left: 35%;}
+    .mundo-3-layout .level-3{ top: 45%; right: 30%;}
+    .mundo-3-layout .level-4{ top: 30%; right: 25%;}
+    .mundo-3-layout .level-5{ top: 15%; right: 35%;}
 }
+
+@media (width: 820px) {
+    .mundo-3-layout .level-2{ top: 60%; left: 35%;}
+    .mundo-3-layout .level-3{ top: 50%; right: 15%;}
+    .mundo-3-layout .level-4{ top: 35%; right: 20%;}
+    .mundo-3-layout .level-5{ top: 20%; right: 40%;}
+}
+
+@media (width: 768px) {
+    .mundo-3-layout .level-2{ top: 60%; left: 35%;}
+    .mundo-3-layout .level-3{ top: 50%; right: 15%;}
+    .mundo-3-layout .level-4{ top: 35%; right: 20%;}
+    .mundo-3-layout .level-5{ top: 20%; right: 40%;}
+}
+
