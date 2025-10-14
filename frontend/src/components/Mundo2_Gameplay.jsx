@@ -202,8 +202,8 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
         }
     }, [bebidas, estadoJogo, finalizarFase]);
 
-    if (estadoJogo === "carregando") return <div className="loading-screen">Carregando...</div>;
-    if (estadoJogo === "erro") return <div className="error-screen">Erro ao carregar a fase.</div>;
+    if (estadoJogo === "carregando") return <div className="loading-screen-2">Carregando...</div>;
+    if (estadoJogo === "erro") return <div className="error-screen-2">Erro ao carregar a fase.</div>;
 
     return (
         <section className="level-section" onMouseMove={handleMouseMove} ref={gameAreaRef}>

@@ -303,8 +303,8 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   };
 
   // --- Renderização ---
-  if (estadoJogo === 'carregando') return <div className="loading-screen">Carregando Cruzadinha...</div>;
-  if (estadoJogo === 'erro') return <div className="error-screen">Erro ao carregar a fase.</div>;
+  if (estadoJogo === 'carregando') return <div className="loading-screen-3">Carregando Cruzadinha...</div>;
+  if (estadoJogo === 'erro') return <div className="error-screen-3">Erro ao carregar a fase.</div>;
 
   const padding = 1;
 
