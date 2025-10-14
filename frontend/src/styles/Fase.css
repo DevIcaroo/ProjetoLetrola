@@ -6,6 +6,25 @@
     box-sizing: border-box;
 }
 
+/* --- Telas de Carregamento/Erro --- */
+.loading-screen-1, .error-screen-1 {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Bangers', sans-serif;
+    background-color: #f0f0f0;
+    background-image: url('/loading-monkey.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
 .level-section{
     width: 100%;
     height: 100vh;
@@ -475,6 +494,25 @@ header{
 
 
 /* ESTILOS PARA O MUNDO 2 - PESCARIA */
+
+/* --- Telas de Carregamento/Erro --- */
+.loading-screen-2, .error-screen-2 {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5rem;
+    color: white;
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Bangers', sans-serif;
+    background-color: #f0f0f0;
+    background-image: url('/loading-bear.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 .level-container-mundo2 {
   width: 100%;
