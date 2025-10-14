@@ -221,6 +221,10 @@
     top: -10px !important;
 }
 
+#dica-FITAS{
+    top: 230px !important;
+}
+
 
 .cruzadinha-grid {
     display: grid;
