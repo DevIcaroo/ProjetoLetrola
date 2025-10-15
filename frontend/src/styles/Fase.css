@@ -118,21 +118,42 @@ header{
 }
 
 /*--------------botões modal config geral---------------- */
-.btn-level-grid{
+.btn-level-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 0.5rem;
-    width: 250px;
-    justify-items: center;
+    width: 210px;
+    justify-items: stretch;
     padding: 0.5rem;
 }
 
-.btn-level-grid .btn:nth-child(3){
-  grid-column: auto;
+/* --- Linha 1: Música e Efeitos --- */
+.btn-level-grid .music-btn {
+    grid-column: 1 / 4;
+}
+.btn-level-grid .effect-btn {
+    grid-column: 4 / 7;
 }
 
-.btn-level-grid .btn:nth-child(4),.btn:nth-child(5) {
-    grid-column: 1 / 4;
+/* --- Linha 2: Map, Stop e Retry --- */
+.btn-level-grid .map-btn {
+    grid-column: 1 / 3;
+}
+.btn-level-grid .stop-btn {
+    grid-column: 3 / 5;
+}
+.btn-level-grid .retry-btn {
+    grid-column: 5 / 7; 
+}
+
+/* --- Linha 3: Ajuda --- */
+.btn-level-grid .help-btn {
+    grid-column: 1 / 7; 
+}
+
+/* --- Linha 4: Fechar --- */
+.btn-level-grid .skip-btn {
+    grid-column: 1 / 7; 
 }
 
 .map-btn, .stop-btn, .retry-btn{
@@ -155,6 +176,11 @@ header{
     background-color: #ffffff48;
     left: 5%;
     bottom: 45%;
+}
+
+.btn.grayscale {
+  filter: grayscale(100%);
+  opacity: 0.7;
 }
 
 .map-btn{
