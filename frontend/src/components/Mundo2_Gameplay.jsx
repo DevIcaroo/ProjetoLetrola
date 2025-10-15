@@ -6,6 +6,7 @@ import Cronometro from "./Cronometro.jsx";
 import ScoreDisplay from './ScoreDisplay.jsx';
 import PuzzleTroca from './PuzzleTroca.jsx';
 import { buscarItensPorFase } from "../services/apiItensFase.js";
+import { useAudio } from "../hooks/useAudio"; // Importando o hook de áudio
 
 // --- Constantes de Configuração do Jogo ---
 const MUNDO_ID = 2;
@@ -23,7 +24,6 @@ const formatTime = (timeInMs) => {
 };
 
 // --- Componentes de UI (Filhos) ---
-
 const VaraDePesca = ({ mousePos, pontaDaVara }) => {
     const deltaX = mousePos.x - pontaDaVara.x;
     const deltaY = mousePos.y - pontaDaVara.y;
@@ -55,7 +55,6 @@ const VaraDePesca = ({ mousePos, pontaDaVara }) => {
     );
 };
 
-
 const Bebida = ({ bebida, onClick }) => (
     <img
         src={bebida.imgSrc}
@@ -70,8 +69,11 @@ const Bebida = ({ bebida, onClick }) => (
 function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
     const navigate = useNavigate();
     const { mundoId, faseId } = useParams();
+    const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
+
     const gameAreaRef = useRef(null);
     const pontaVaraRef = useRef(null);
+    
     const [pontaVaraPos, setPontaVaraPos] = useState({ x: 0, y: 0 });
     const [isBgLoaded, setIsBgLoaded] = useState(false);
     const [estadoJogo, setEstadoJogo] = useState("carregando");
@@ -82,6 +84,14 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
     const [dicaExibida, setDicaExibida] = useState("Troque as letras para formar a palavra!");
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+    // Efeito para tocar a música de fundo
+    useEffect(() => {
+        const audio = playSound(`musica-mundo-${MUNDO_ID}`, true);
+        return () => {
+            if (audio) audio.pause();
+        };
+    }, [playSound]);
 
     useEffect(() => {
         const updatePontaVaraPos = () => {
@@ -95,18 +105,11 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
             }
         };
         
-        // Roda o cálculo assim que a imagem de fundo estiver carregada
         if (isBgLoaded) {
             updatePontaVaraPos();
         }
-
-        // Continua a escutar por redimensionamento da janela
         window.addEventListener('resize', updatePontaVaraPos);
-
-        return () => {
-            window.removeEventListener('resize', updatePontaVaraPos);
-        };
-        // A dependência agora é o estado de carregamento da imagem
+        return () => window.removeEventListener('resize', updatePontaVaraPos);
     }, [isBgLoaded]); 
 
     const handleMouseMove = useCallback((e) => {
@@ -124,12 +127,10 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
 
         const tempoFinalSegundos = Math.floor(tempo.decorrido / 1000);
         let estrelas = 0;
-
         if (motivo !== 'tempo_esgotado') {
             if (tempoFinalSegundos <= TEMPO_3_ESTRELAS) estrelas = 3;
             else if (tempoFinalSegundos <= TEMPO_2_ESTRELAS) estrelas = 2;
             else if (tempoFinalSegundos <= TEMPO_1_ESTRELA) estrelas = 1;
-
             if (dicasUsadas > LIMITE_DICAS) {
                 estrelas = Math.max(0, estrelas - 1);
             }
@@ -167,17 +168,19 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
 
     const handlePescarBebida = useCallback((bebida) => {
         if (estadoJogo !== 'jogando') return;
+        playSound('som-pegar-item');
         setEstadoJogo("pausado");
         setPuzzle({ isOpen: true, item: { ...bebida, timestampInicio: Date.now() } });
-    }, [estadoJogo]);
+    }, [estadoJogo, playSound]);
 
     const handleAcertoPuzzle = useCallback(() => {
         if (!puzzle.item) return;
+        playSound('fase-acerto');
         setBebidas(prev => prev.map(b => b.id === puzzle.item.id ? { ...b, pega: true } : b));
         setPuzzle({ isOpen: false, item: null });
         setDicaExibida("Troque as letras para formar a palavra!");
         setEstadoJogo("jogando");
-    }, [puzzle.item]);
+    }, [puzzle.item, playSound]);
     
     const handleDicaLiberada = useCallback((nivelDica, itemId) => {
         if (!puzzle.item || puzzle.item.id !== itemId) return;
@@ -187,9 +190,14 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
             setDicasUsadas(prev => prev + 1);
         }
     }, [puzzle.item]);
-
-    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
-
+    
+    // --- Handlers com som para os botões ---
+    const handleOpenConfig = () => { playSound('click'); setIsConfigOpen(true); };
+    const handleVoltarAoMapa = () => { playSound('click'); navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } }); };
+    const handlePausar = () => { playSound('click'); setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando'); };
+    const handleRetry = () => { playSound('click'); inicializarFase(); };
+    const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
+    const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
 
     useEffect(() => {
         if (!jogador) navigate("/");
@@ -208,7 +216,7 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
     return (
         <section className="level-section" onMouseMove={handleMouseMove} ref={gameAreaRef}>
             <header>
-                <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
+                <button className="level-settings-btn" onClick={handleOpenConfig}>
                     <img src="/Settings.svg" alt="Configurações" />
                 </button>
                 <ScoreDisplay tempoDecorridoMs={tempo.decorrido} dicasTotaisUsadas={dicasUsadas} />
@@ -267,13 +275,20 @@ function Mundo2_Gameplay({ jogador, onFaseCompleta }) {
                 )}
             </Modal>
 
-            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
+           <Modal isOpen={isConfigOpen} onClose={handleCloseConfig} variant="config">
                 <div className="btn-level-grid">
-                    <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } })}>🏠</button>
-                    <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
-                    <button className="btn retry-btn" onClick={inicializarFase}>↩</button>
-                    <button className="btn help-btn" onClick={() => navigate('/ajuda')}>ajuda</button>
-                    <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}>fechar</button>
+                    {/* Botões atualizados */}
+                    <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={toggleMusic}>
+                        <div></div> música
+                    </button>
+                    <button className={`btn effect-btn ${isSfxMuted ? 'grayscale' : ''}`} onClick={toggleSfx}>
+                        <div></div> efeitos
+                    </button>
+                    <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
+                    <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
+                    <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
+                    <button className="btn help-btn" onClick={handleNavigateAjuda}><div></div> ajuda</button>
+                    <button className="btn skip-btn" onClick={handleCloseConfig}><div></div>fechar</button>
                 </div>
             </Modal>
         </section>

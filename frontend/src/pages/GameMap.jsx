@@ -6,12 +6,14 @@ import ScoreDisplay from "../components/ScoreDisplay";
 import { buscarFaseAtual, buscarEstrelas, buscarTotalEstrelas } from "../services/apiProgresso";
 import { verificarAcessoFase } from "../services/apiFases";
 import { mundos } from "../data/mundoData";
+import { useAudio } from "../hooks/useAudio";
 
 function GameMap() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const { jogador, mundo_id = 1, checkWorldCompletion } = location.state || {};
+  const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
 
   const dadosMundo = mundos[mundo_id] || mundos[1];
   const levels = [1, 2, 3, 4, 5];
@@ -60,6 +62,14 @@ function GameMap() {
     }
     buscarDadosDoJogador();
   }, [jogador, navigate, mundo_id, buscarDadosDoJogador]);
+  
+  // Efeito para tocar a música do mundo
+  useEffect(() => {
+    const audio = playSound(true);
+    return () => {
+      if (audio) audio.pause();
+    };
+  }, [mundo_id, playSound]);
 
   useEffect(() => {
     if (!jogador?.id || !dadosMundo?.historia?.length) {
@@ -92,6 +102,7 @@ function GameMap() {
   }, [checkWorldCompletion, jogador, mundo_id]);
 
   const handleLevelClick = async (level) => {
+    playSound('click');
     try {
       const resultado = await verificarAcessoFase(jogador.id, mundo_id, level);
       if (resultado?.permitido) {
@@ -107,11 +118,13 @@ function GameMap() {
   };
 
   const handleWorldChange = (novoMundoId) => {
+    playSound('click');
     navigate('/mapa-do-jogo', { state: { jogador, mundo_id: novoMundoId }, replace: true });
     setIsWorldSelectOpen(false);
   };
 
   const handleProximoDialogo = () => {
+    playSound('click');
     if (dadosMundo.historia && indiceHistoria < dadosMundo.historia.length - 1) {
       setIndiceHistoria(indiceHistoria + 1);
     } else {
@@ -120,6 +133,31 @@ function GameMap() {
       setMostrarHistoria(false);
     }
   };
+
+  const handleOpenConfig = () => {
+    playSound('click');
+    setIsConfigOpen(true);
+  };
+
+  const handleOpenWorldSelect = () => {
+    playSound('click');
+    setIsWorldSelectOpen(true);
+  };
+
+  const handleNavigateAjuda = () => {
+    playSound('click');
+    navigate('/ajuda');
+  }
+
+  const handleToggleMusic = () => {
+    playSound('click');
+    toggleMusic();
+  }
+
+  const handleToggleSfx = () => {
+    playSound('click');
+    toggleSfx();
+  }
 
   const totalStars = Object.values(starsPerLevel).reduce((a, b) => a + b, 0);
   const maxStars = levels.length * 3;
@@ -156,14 +194,14 @@ function GameMap() {
           </div>
         </div>
 
-        <button className="settings-btn-right" onClick={() => setIsConfigOpen(true)}>
+        <button className="settings-btn-right" onClick={handleOpenConfig}>
           <div></div>
           <img src="/Settings.svg" alt="Configurações" />
         </button>
 
-        <button className="world-btn-right" onClick={() => setIsWorldSelectOpen(true)}>
+        <button className="world-btn-right" onClick={handleOpenWorldSelect}>
           <div></div>
-          <img src="/World.svg" alt="Configurações" />
+          <img src="/World.svg" alt="Mundos" />
         </button>
 
 
@@ -202,9 +240,14 @@ function GameMap() {
         variant="config"
       >
         <div className="btn-grid">
-          <button className="btn music-btn"> <div></div> música</button>
-          <button className="btn effect-btn"> <div></div> efeitos</button>
-          <button className="btn help-btn" onClick={() => navigate('/ajuda')}> <div></div> ajuda</button>
+          {/* Botões atualizados */}
+          <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={handleToggleMusic}>
+              <div></div> música
+          </button>
+          <button className={`btn effect-btn ${isSfxMuted ? 'grayscale' : ''}`} onClick={handleToggleSfx}>
+              <div></div> efeitos
+          </button>
+          <button className="btn help-btn" onClick={handleNavigateAjuda}> <div></div> ajuda</button>
         </div>
       </Modal>
 
@@ -212,17 +255,13 @@ function GameMap() {
       onClose={() => setIsWorldSelectOpen(false)} variant="worldConfig">
 
         <div className="btn-grid-world">
-
           {Object.keys(mundos).map(id => (
             <button key={id} className={`btn-world mundo-${id}-btn`} onClick={() => handleWorldChange(parseInt(id))} disabled={!mundosDesbloqueados[id]}>
               <div></div>{mundos[id].nome}
             </button>
-
           ))}
         </div>
-
       </Modal>
-
     </section>
   );
 }

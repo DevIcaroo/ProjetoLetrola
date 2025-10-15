@@ -5,6 +5,7 @@ import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
 import ScoreDisplay from './ScoreDisplay.jsx';
 import '../styles/Mundo4.css'; // Estilos para o novo mundo
+import { useAudio } from "../hooks/useAudio"; // Importando o hook de áudio
 
 // --- Dados mockados para as fases do Mundo 4 ---
 const fasesMundo4 = {
@@ -44,14 +45,23 @@ const formatTime = (timeInMs) => {
 };
 
 function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
-  const { mundoId, faseId } = useParams();
+  const { faseId } = useParams();
   const navigate = useNavigate();
+  const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
   const faseAtual = fasesMundo4[faseId];
 
   const [estadoJogo, setEstadoJogo] = useState("carregando");
   const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [palavrasEncontradas, setPalavrasEncontradas] = useState([]);
+
+  // Efeito para tocar a música de fundo
+  useEffect(() => {
+    const audio = playSound(`musica-mundo-${MUNDO_ID}`, true);
+    return () => {
+        if (audio) audio.pause();
+    };
+  }, [playSound]);
 
   const finalizarFase = useCallback((motivo = 'concluido') => {
       if (estadoJogo === "finalizado") return;
@@ -69,6 +79,7 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
   }, [estadoJogo, tempo.decorrido, onFaseCompleta]);
 
   const handlePalavraEncontrada = (palavra) => {
+    playSound('fase-acerto');
     setPalavrasEncontradas(prev => [...prev, palavra]);
   };
 
@@ -84,6 +95,14 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
     else setEstadoJogo("jogando");
   }, [jogador, navigate]);
 
+  // --- Handlers com som para os botões ---
+  const handleOpenConfig = () => { playSound('click'); setIsConfigOpen(true); };
+  const handleVoltarAoMapa = () => { playSound('click'); navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } }); };
+  const handlePausar = () => { playSound('click'); setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando'); };
+  const handleRetry = () => { playSound('click'); window.location.reload(); };
+  const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
+  const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
+
 
   if (estadoJogo === "carregando") return <div className="loading-screen">Carregando...</div>;
   if (!faseAtual) return <div className="error-screen">Fase não encontrada!</div>;
@@ -91,7 +110,7 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
   return (
     <section className="mundo4-section">
       <header className="mundo4-header">
-        <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
+        <button className="level-settings-btn" onClick={handleOpenConfig}>
           <img src="/Settings.svg" alt="Configurações" />
         </button>
         <ScoreDisplay tempoDecorridoMs={tempo.decorrido} />
@@ -119,13 +138,19 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
         />
       </main>
 
-      <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
+      <Modal isOpen={isConfigOpen} onClose={handleCloseConfig} variant="config">
           <div className="btn-level-grid">
-              <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } })}>🏠</button>
-              <button className="btn stop-btn" onClick={() => setEstadoJogo(estadoJogo === 'pausado' ? 'jogando' : 'pausado')}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
-              <button className="btn retry-btn" onClick={() => window.location.reload()}>↩</button>
-              <button className="btn help-btn" onClick={() => navigate('/ajuda')}>ajuda</button>
-              <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}>fechar</button>
+              <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={toggleMusic}>
+                  <div></div> música
+              </button>
+              <button className={`btn effect-btn ${isSfxMuted ? 'grayscale' : ''}`} onClick={toggleSfx}>
+                  <div></div> efeitos
+              </button>
+              <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
+              <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
+              <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
+              <button className="btn help-btn" onClick={handleNavigateAjuda}><div></div> ajuda</button>
+              <button className="btn skip-btn" onClick={handleCloseConfig}><div></div> fechar</button>
           </div>
       </Modal>
     </section>

@@ -3,31 +3,32 @@ import "../styles/Home.css";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal.jsx";
 import { buscarJogador, criarJogador } from "../services/apiJogadores.js";
-// A importação de 'verificarProgressoAtivo' e 'iniciarNovoJogo' pode ser necessária
-// dependendo da lógica exata após o login, mas não para a correção do bug principal.
 import { iniciarNovoJogo } from "../services/apiProgresso.js";
+import { useAudio } from "../hooks/useAudio";
 
 function Home() {
   const navigate = useNavigate();
   const [modalStep, setModalStep] = useState(0);
-  const [isConfigOpen, setIsConfigOpen] = useState(false) // Corrigido para boolean
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [nomeJogador, setNomeJogador] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isNewGame, setIsNewGame] = useState(false);
+  const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
 
-  const handleStart = () => setModalStep(1);
+  const handleStart = () => {
+    playSound('click');
+    setModalStep(1);
+  };
 
   const handleChoice = (isNew) => {
+    playSound('click');
     setIsNewGame(isNew);
     setModalStep(2);
   };
 
-  /**
-   * ✅ [FUNÇÃO CORRIGIDA]
-   * Esta função agora tem lógicas separadas para 'Novo Jogo' e 'Continuar'.
-   */
   const handleLoginOrCreate = async () => {
+    playSound('click');
     if (nomeJogador.trim() === "") {
       setErrorMessage("Por favor, digite seu nome");
       return;
@@ -38,30 +39,37 @@ function Home() {
     try {
       let jogador;
       
-      // --- FLUXO DE NOVO JOGO ---
       if (isNewGame) {
-        // Tenta criar o jogador. Se o nome já existir, a API retornará um erro.
         jogador = await criarJogador(nomeJogador);
         console.log("Novo jogador criado:", jogador);
-        // Não precisamos de chamar iniciarNovoJogo aqui, pois é um jogador novo.
-
-      // --- FLUXO DE CONTINUAR JOGO ---
       } else {
-        // Tenta buscar o jogador. Se não existir, a API retornará um erro.
         jogador = await buscarJogador(nomeJogador);
         console.log("Jogador encontrado:", jogador);
       }
 
-      // Se qualquer um dos fluxos acima for bem-sucedido, navega para o mapa.
       navigate("/mapa-do-jogo", { state: { jogador } });
 
     } catch (error) {
-      // Apanha qualquer erro (ex: nome já existe ou jogador não encontrado) e mostra-o.
       setErrorMessage(error.message);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleOpenConfig = () => {
+    playSound('click');
+    setIsConfigOpen(true);
+  };
+
+  const handleNavigateAjuda = () => {
+    playSound('click');
+    navigate('/ajuda');
+  }
+
+  const handleCloseConfig = () => {
+    playSound('click');
+    setIsConfigOpen(false);
+  }
 
   const closeModal = () => {
     if (isLoading) return;
@@ -88,7 +96,7 @@ function Home() {
           <img src="/red cube.svg" alt="" className="red" />
         </div>
 
-        <button className="settings-btn" onClick={() => setIsConfigOpen(true)}>
+        <button className="settings-btn" onClick={handleOpenConfig}>
           <div></div>
           <img src="/Settings.svg" alt="Configurações" />
         </button>
@@ -135,14 +143,19 @@ function Home() {
 
       <Modal
         isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)} // Modificado para fechar corretamente
+        onClose={() => setIsConfigOpen(false)}
         variant="config"
       >
         <div className="btn-grid">
-          <button className="btn music-btn"> <div></div> música</button>
-          <button className="btn effect-btn"> <div></div> efeitos</button>
-          <button className="btn help-btn" onClick={() => navigate('/ajuda')}> <div></div> ajuda</button>
-          <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}> <div></div> fechar</button>
+            {/* Botões atualizados */}
+            <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={toggleMusic}>
+                <div></div> música
+            </button>
+            <button className={`btn effect-btn ${isSfxMuted ? 'grayscale' : ''}`} onClick={toggleSfx}>
+                <div></div> efeitos
+            </button>
+            <button className="btn help-btn" onClick={handleNavigateAjuda}> <div></div> ajuda</button>
+            <button className="btn skip-btn" onClick={handleCloseConfig}> <div></div> fechar</button>
         </div>
       </Modal>
     </section>

@@ -3,8 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { buscarCruzadinhaPorFase } from '../services/apiCruzadinhas';
 import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
-import CruzadinhaScoreDisplay from './CruzadinhaScoreDisplay.jsx'; 
+import CruzadinhaScoreDisplay from './CruzadinhaScoreDisplay.jsx';
 import '../styles/Cruzadinha.css';
+import { useAudio } from "../hooks/useAudio"; // Importando o hook de áudio
 
 // --- Constantes ---
 const MUNDO_ID = 3;
@@ -60,6 +61,7 @@ const dicaImagens = {
 function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const { faseId } = useParams();
   const navigate = useNavigate();
+  const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
 
   // --- Estados do Componente ---
   const [estadoJogo, setEstadoJogo] = useState("carregando");
@@ -72,6 +74,14 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   const inputsRef = useRef({});
   const lastClickInfoRef = useRef({ time: 0, cellKey: null });
 
+    // Efeito para tocar a música de fundo
+    useEffect(() => {
+        const audio = playSound(`musica-mundo-${MUNDO_ID}`, true);
+        return () => {
+            if (audio) audio.pause();
+        };
+    }, [playSound]);
+
     const finalizarFase = useCallback((motivo = 'concluido') => {
         if (estadoJogo === "finalizado") return;
         setEstadoJogo("finalizado");
@@ -83,7 +93,6 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             if (tempoFinalSegundos <= TEMPO_3_ESTRELAS) estrelas = 3;
             else if (tempoFinalSegundos <= TEMPO_2_ESTRELAS) estrelas = 2;
             else if (tempoFinalSegundos <= TEMPO_1_ESTRELA) estrelas = 1;
-            
         }
 
         onFaseCompleta({ estrelas, tempoConclusao: tempoFinalSegundos });
@@ -157,10 +166,6 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
     }
   }, [palavras, estadoJogo, finalizarFase]);
 
-  // --- Funções de Manipulação ---
-    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
-
-
     const handleFocus = (y, x, cell) => {
         const now = Date.now();
         const { time, cellKey } = lastClickInfoRef.current;
@@ -200,16 +205,15 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
                     const outraPalavra = palavras.find(p => p.id === parseInt(idOutraPalavra));
                     if (outraPalavra && !outraPalavra.estaCompleta) {
                         setPalavraAtiva(outraPalavra);
-                        // Foco na primeira célula vazia da nova palavra ativa
                         for (let j = 0; j < outraPalavra.palavra.length; j++) {
                             const nextX = outraPalavra.posicao_x + padding + (outraPalavra.orientacao === 'horizontal' ? j : 0);
                             const nextY = outraPalavra.posicao_y + padding + (outraPalavra.orientacao === 'vertical' ? j : 0);
                             if (grid[nextY][nextX].letra === '') {
                                 inputsRef.current[`${nextY}-${nextX}`]?.focus();
-                                break; // Para após encontrar a primeira vazia
+                                break;
                             }
                         }
-                        return; // Sai da função após encontrar a primeira interseção válida
+                        return;
                     }
                 }
             }
@@ -232,11 +236,13 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
                         const palavraFormada = construirPalavra(palavraObj, novaGrid);
                         if (palavraFormada.length === palavraObj.palavra.length) {
                             if (palavraFormada === palavraObj.palavra) {
+                                playSound('fase-acerto');
                                 const palavraCompleta = { ...palavraObj, estaCompleta: true };
                                 palavrasAtualizadas[palavrasAtualizadas.findIndex(p => p.id === parseInt(id))] = palavraCompleta;
                                 atualizarStatusDaGrid(novaGrid, palavraObj, 'correto');
                                 avancarParaProximaPalavra(palavraCompleta);
                             } else {
+                                playSound('fase-erro');
                                 acionarFeedbackErro(palavraObj);
                             }
                         }
@@ -301,6 +307,14 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
     setCelulasComErro(celulas);
     setTimeout(() => setCelulasComErro({}), 500);
   };
+  
+    // --- Handlers com som para os botões ---
+    const handleOpenConfig = () => { playSound('click'); setIsConfigOpen(true); };
+    const handleVoltarAoMapa = () => { playSound('click'); navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } }); };
+    const handlePausar = () => { playSound('click'); setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando'); };
+    const handleRetry = () => { playSound('click'); inicializarFase(); };
+    const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
+    const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
 
   // --- Renderização ---
   if (estadoJogo === 'carregando') return <div className="loading-screen-3">Carregando Cruzadinha...</div>;
@@ -311,7 +325,7 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
   return (
     <section className="cruzadinha-section">
         <header className="cruzadinha-header">
-            <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
+            <button className="level-settings-btn" onClick={handleOpenConfig}>
                 <img src="/Settings.svg" alt="Configurações" />
             </button>
             <CruzadinhaScoreDisplay tempoDecorridoMs={tempo.decorrido} />
@@ -387,13 +401,19 @@ function Mundo3_Gameplay({ jogador, onFaseCompleta }) {
             </div>
         </main>
 
-        <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
+        <Modal isOpen={isConfigOpen} onClose={handleCloseConfig} variant="config">
             <div className="btn-level-grid">
-                <button className="btn map-btn" onClick={() => navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } })}>🏠</button>
-                <button className="btn stop-btn" onClick={handlePausar}>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
-                <button className="btn retry-btn" onClick={inicializarFase}>↩</button>
-                <button className="btn help-btn" onClick={() => navigate('/ajuda')}>ajuda</button>
-                <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}>fechar</button>
+                <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={toggleMusic}>
+                    <div></div> música
+                </button>
+                <button className={`btn effect-btn ${isSfxMuted ? 'grayscale' : ''}`} onClick={toggleSfx}>
+                    <div></div> efeitos
+                </button>
+                <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
+                <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
+                <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
+                <button className="btn help-btn" onClick={handleNavigateAjuda}><div></div> ajuda</button>
+                <button className="btn skip-btn" onClick={handleCloseConfig}><div></div> fechar</button>
             </div>
         </Modal>
     </section>

@@ -5,6 +5,7 @@ import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
 import ScoreDisplay from './ScoreDisplay.jsx';
 import { buscarItensPorFase } from "../services/apiItensFase.js";
+import { useAudio } from "../hooks/useAudio"; // Importando o hook de áudio
 
 const GRAVIDADE = 0.8;
 const FORCA_PULO = 18;
@@ -50,10 +51,10 @@ const Fruta = ({ fruta }) => ( <img src={fruta.imgSrc} className="fruta" style={
 function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
     const navigate = useNavigate();
     const { mundoId, faseId } = useParams();
+    const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
 
     const mundo_id = parseInt(mundoId);
     const fase_id = parseInt(faseId);
-    const proxima_fase_id = fase_id + 1;
 
     const [estadoJogo, setEstadoJogo] = useState("carregando");
     const [tempoInicioFase, setTempoInicioFase] = useState(Date.now());
@@ -73,7 +74,15 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
     const [dicaExibida, setDicaExibida] = useState("Colete as frutas para aprender a soletrar!");
     
     const gameLoopRef = useRef();
-    const animationFrameRef = useRef(0);
+
+    // Efeito para tocar a música de fundo do mundo
+    useEffect(() => {
+        const musicaMundo = `musica-mundo-${mundo_id}`;
+        const audio = playSound(musicaMundo, true);
+        return () => {
+            if (audio) audio.pause();
+        };
+    }, [mundo_id, playSound]);
 
     const handleFaseTermina = useCallback(({ tempoFinalMs, motivo }) => {
         if (estadoJogo === "finalizado") return;
@@ -140,15 +149,19 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
 
     useEffect(() => {
         if (frutas.length > 0 && estadoJogo === "jogando") {
-            const todasPegas = frutas.every(fruta => fruta.pega);
-            if (todasPegas) {
+            if (frutas.every(fruta => fruta.pega)) {
                 handleConcluirFase();
             }
         }
     }, [frutas, estadoJogo, handleConcluirFase]);
 
     useEffect(() => {
-        const handleKeyDown = (e) => setTeclasPressionadas(prev => ({ ...prev, [e.key]: true }));
+        const handleKeyDown = (e) => {
+            setTeclasPressionadas(prev => ({ ...prev, [e.key]: true }));
+            if (e.key === 'ArrowUp') {
+                playSound('som-pular');
+            }
+        };
         const handleKeyUp = (e) => setTeclasPressionadas(prev => ({ ...prev, [e.key]: false }));
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
@@ -156,9 +169,10 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, []);
+    }, [playSound]);
 
     const handlePegarFruta = useCallback((fruta) => {
+        playSound('som-pegar-item');
         setItemEmJogo({ ...fruta, timestampInicio: Date.now() });
         setDicaExibida("Arraste as letras para formar a palavra!");
         setPuzzleAtual({
@@ -167,9 +181,10 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             slotsResposta: Array(fruta.nome.length).fill(null),
         });
         setIsPuzzleOpen(true);
-    }, []);
+    }, [playSound]);
 
     const handleAcertoPuzzle = useCallback(() => {
+        playSound('fase-acerto');
         setFrutas(prevFrutas =>
             prevFrutas.map(f =>
                 f.id === puzzleAtual.fruta.id ? { ...f, pega: true } : f
@@ -179,7 +194,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
         setColisaoAtiva(false);
         setItemEmJogo(null);
         setDicaExibida("Parabéns! Continue coletando as outras frutas.");
-    }, [puzzleAtual.fruta]);
+    }, [puzzleAtual.fruta, playSound]);
 
     const gameLoop = useCallback(() => {
         if (estadoJogo !== "jogando" || isPuzzleOpen) {
@@ -250,6 +265,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             if (palavraFormada === puzzleAtual.fruta.nome) {
                 setTimeout(handleAcertoPuzzle, 300);
             } else {
+                playSound('fase-erro');
                 setPuzzleError(true);
                 setTimeout(() => setPuzzleError(false), 800);
             }
@@ -286,28 +302,23 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
         }
     };
 
-    const handleVoltarAoMapa = () => {
-        const navState = { jogador, mundo_id };
-        if (fase_id === 5) {
-            navState.checkWorldCompletion = true;
-        }
-        navigate("/mapa-do-jogo", { state: navState });
-    };
+    // --- Handlers com som para os botões ---
+    const handleOpenConfig = () => { playSound('click'); setIsConfigOpen(true); };
+    const handleVoltarAoMapa = () => { playSound('click'); navigate("/mapa-do-jogo", { state: { jogador, mundo_id } }); };
+    const handleAvancar = () => { playSound('click'); navigate(`/mundo/${mundo_id}/fase/${fase_id + 1}`, { state: { jogador } }); };
+    const handleRetry = () => { playSound('click'); inicializarFase(); };
+    const handlePausar = () => { playSound('click'); setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando'); };
+    const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
+    const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
 
-    const handleAvancar = () => {
-        navigate(`/mundo/${mundo_id}/fase/${proxima_fase_id}`, { state: { jogador } });
-    };
-
-    const handleRetry = () => inicializarFase();
-    const handlePausar = () => setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando');
-
-    if (estadoJogo === "carregando") { return <div style={{color: "white"}}>Carregando fase...</div>; }
-    if (estadoJogo === "erro") { return <div style={{color: "white"}}>Ocorreu um erro ao carregar a fase. Tente voltar ao mapa.</div>; }
+    if (estadoJogo === "carregando") { return <div className="loading-screen-1">Carregando fase...</div>; }
+    if (estadoJogo === "erro") { return <div className="error-screen-1">Ocorreu um erro ao carregar a fase.</div>; }
 
     return (
         <section className="level-section">
             {estadoJogo === "jogando" && (
                 <Cronometro
+                    isPaused={isPuzzleOpen || estadoJogo === 'pausado'}
                     tempoInicioFase={tempoInicioFase}
                     limiteTempoFase={TEMPO_1_ESTRELA * 1000}
                     onTempoTick={handleTempoTick}
@@ -337,7 +348,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             </div>
 
             <header>
-                <button className="level-settings-btn" onClick={() => setIsConfigOpen(true)}>
+                <button className="level-settings-btn" onClick={handleOpenConfig}>
                     <img src="/Settings.svg" alt="Configurações" />
                 </button>
 
@@ -383,13 +394,20 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
                 </div>
             </Modal>
             
-            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
+           <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
                 <div className="btn-level-grid">
+                    {/* Botões atualizados */}
+                    <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={toggleMusic}>
+                        <div></div> música
+                    </button>
+                    <button className={`btn effect-btn ${isSfxMuted ? 'grayscale' : ''}`} onClick={toggleSfx}>
+                        <div></div> efeitos
+                    </button>
                     <button className="btn map-btn" onClick={handleVoltarAoMapa}><div></div>🏠</button>
                     <button className="btn stop-btn" onClick={handlePausar}><div></div>{estadoJogo === 'pausado' ? '▶' : '⏸'}</button>
                     <button className="btn retry-btn" onClick={handleRetry}><div></div>↩</button>
-                    <button className="btn help-btn" onClick={() => navigate('/ajuda')}><div></div> ajuda</button>
-                    <button className="btn skip-btn" onClick={() => setIsConfigOpen(false)}><div></div>fechar</button>
+                    <button className="btn help-btn" onClick={handleNavigateAjuda}><div></div> ajuda</button>
+                    <button className="btn skip-btn" onClick={handleCloseConfig}><div></div>fechar</button>
                 </div>
             </Modal>
         </section>

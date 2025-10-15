@@ -8,6 +8,7 @@ import Modal from "../components/Modal.jsx";
 import ScoreDisplay from '../components/ScoreDisplay.jsx';
 import { salvarProgresso, buscarTotalEstrelas } from "../services/apiProgresso.js";
 import { mundos } from "../data/mundoData.js";
+import { useAudio } from "../hooks/useAudio"; // Importando o hook
 
 // Função para formatar o tempo
 const formatTime = (time, unit = 'ms') => {
@@ -26,30 +27,32 @@ function Fase() {
   const navigate = useNavigate();
   const location = useLocation();
   const { jogador } = location.state || {};
+  const { playSound } = useAudio();
 
   const mundo_id = parseInt(mundoId);
   const fase_id = parseInt(faseId);
   
-  // State para o modal de feedback de cada fase
+  // States dos modais e do jogo
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [resultadoFinal, setResultadoFinal] = useState({ title: "", estrelas: 0, tempoConclusao: 0, proximaMeta: "" });
-
-  // State para o modal de conclusão de mundo
   const [isFimDoMundoOpen, setIsFimDoMundoOpen] = useState(false);
   const [resultadoMundo, setResultadoMundo] = useState({ totalEstrelas: 0, desbloqueado: false, mensagem: "" });
-  
-  // State para forçar a reinicialização do componente de gameplay
   const [gameKey, setGameKey] = useState(Date.now());
 
-  // Lida com a conclusão de uma fase
+  // Lida com a conclusão de uma fase, agora com som
   const handleFaseCompleta = useCallback(async (resultado) => {
+    if (resultado.estrelas > 0) {
+      playSound('vitoria');
+    } else {
+      playSound('derrota');
+    }
+
     try {
         await salvarProgresso(jogador.id, mundo_id, fase_id, resultado.estrelas, resultado.tempoConclusao);
     } catch (error) { 
         console.error("Falha ao salvar o progresso:", error); 
     }
 
-    // Se for a última fase do mundo
     if (fase_id === 5) {
         const totalEstrelasMundo = await buscarTotalEstrelas(jogador.id, mundo_id);
         const desbloqueado = totalEstrelasMundo >= MINIMO_ESTRELAS_AVANCAR;
@@ -63,7 +66,6 @@ function Fase() {
         });
         setIsFimDoMundoOpen(true);
     } else {
-        // Se for uma fase normal
         setResultadoFinal({
             title: resultado.estrelas > 0 ? "" : "Tempo Esgotado!",
             estrelas: resultado.estrelas,
@@ -72,42 +74,43 @@ function Fase() {
         });
         setIsFeedbackOpen(true);
     }
-  }, [jogador, mundo_id, fase_id]);
+  }, [jogador, mundo_id, fase_id, playSound]);
 
-  // Funções de navegação e controle do modal
+  // Funções de navegação com som
   const handleVoltarAoMapa = () => {
-        const navState = { jogador, mundo_id };
-        if (fase_id === 5) {
-            navState.checkWorldCompletion = true;
-        }
-        setIsFeedbackOpen(false)
-        navigate("/mapa-do-jogo", { state: navState });
-    };
+    playSound('click');
+    const navState = { jogador, mundo_id };
+    if (fase_id === 5) {
+        navState.checkWorldCompletion = true;
+    }
+    setIsFeedbackOpen(false);
+    navigate("/mapa-do-jogo", { state: navState });
+  };
 
   const handleAvancar = () => {
+    playSound('click');
     const proxima_fase_id = fase_id + 1;
     setIsFeedbackOpen(false);
     navigate(`/mundo/${mundo_id}/fase/${proxima_fase_id}`, { state: { jogador } });
-    setGameKey(Date.now()); // Muda a key para reiniciar o próximo nível
+    setGameKey(Date.now());
   };
 
   const handleRetry = () => {
+    playSound('click');
     setIsFeedbackOpen(false);
-    setGameKey(Date.now()); // Atualiza a key para forçar a remontagem do componente
+    setGameKey(Date.now());
   };
 
   const handleProximoMundo = () => {
-    setIsFimDoMundoOpen(false); // Fecha o modal
+    playSound('click');
+    setIsFimDoMundoOpen(false);
     const proximo_mundo_id = mundo_id + 1;
-    
-    // Navega para o mapa, passando o ID do PRÓXIMO mundo no estado
     navigate("/mapa-do-jogo", { 
       state: { jogador, mundo_id: proximo_mundo_id },
       replace: true
     });
   };
 
-  // Renderiza o componente de gameplay correto para o mundo
   const renderGameplay = () => {
     switch (mundo_id) {
       case 1:
@@ -123,7 +126,6 @@ function Fase() {
     }
   };
 
-  // Redireciona para a home se não houver dados do jogador
   useEffect(() => {
     if (!jogador) {
       navigate('/');
@@ -137,6 +139,7 @@ function Fase() {
       {/* Modal de Feedback de Fase */}
       <Modal isOpen={isFeedbackOpen} onClose={handleVoltarAoMapa} title={resultadoFinal.title} variant="feedback">
         <div className="feedback-content">
+          <ScoreDisplay starsEarned={resultadoFinal.estrelas} />
           <div className="feedback-stats">
             <p className="time-status">Seu tempo: 
                <span>{formatTime(resultadoFinal.tempoConclusao, 's')}</span>
@@ -155,7 +158,6 @@ function Fase() {
               <div></div>
               ↩
             </button>
-            {/* Só mostra o botão de avançar se o jogador ganhou estrelas e não é a última fase */}
             {resultadoFinal.estrelas > 0 && fase_id < 5 && (
             <button className="btn next-level-btn" onClick={handleAvancar}>
               <div></div>
@@ -169,6 +171,7 @@ function Fase() {
       onClose={handleVoltarAoMapa}
       variant="feedback">
         <div className="feedback-content">
+          <ScoreDisplay starsEarned={resultadoMundo.desbloqueado ? 3 : 1} />
           <div className="feedback-stats">
               <p>{resultadoMundo.mensagem}</p>
               {resultadoMundo.desbloqueado && (
@@ -179,7 +182,6 @@ function Fase() {
           </div>
         </div>
       </Modal>
-
     </div>
   );
 }
