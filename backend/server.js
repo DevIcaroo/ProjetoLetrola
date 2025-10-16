@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors'); 
 const app = express();
@@ -6,13 +7,10 @@ const PORT = 3000;
 const criarTabelas = require('./initDatabase');
 
 // --- Middlewares ---
-// O cors permite que o seu front-end (mesmo que esteja num domínio diferente) aceda à API.
 app.use(cors());
-// O express.json permite que o servidor entenda os dados em formato JSON enviados no corpo das requisições POST.
 app.use(express.json());
 
 // --- Inicialização da Base de Dados ---
-// Chama a função que cria as tabelas se elas não existirem.
 criarTabelas();
 
 // --- Carregamento dos Ficheiros de Rotas ---
@@ -22,6 +20,8 @@ const fasesRoutes = require('./routes/fases');
 const itensFaseRoutes = require('./routes/itensFase');
 const jogadoresRoutes = require('./routes/jogadores');
 const cruzadinhasRoutes = require('./routes/cruzadinhas');
+const cacapalavrasRoutes = require('./routes/cacapalavras');
+const settingsRoutes = require('./routes/settings'); // <-- [NOVO] Carrega o arquivo de rotas de configurações.
 
 // --- Registo das Rotas com Prefixos ---
 app.use('/progresso', progressoRoutes);
@@ -30,6 +30,8 @@ app.use('/fases', fasesRoutes);
 app.use('/itens-fase', itensFaseRoutes);
 app.use('/jogadores', jogadoresRoutes);
 app.use('/cruzadinhas', cruzadinhasRoutes);
+app.use('/cacapalavras', cacapalavrasRoutes);
+app.use('/settings', settingsRoutes); // <-- [NOVO] Registra as rotas sob o prefixo '/settings'.
 
 // --- Arranque do Servidor ---
 app.listen(PORT, () => {

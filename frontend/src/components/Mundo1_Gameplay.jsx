@@ -5,9 +5,7 @@ import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
 import ScoreDisplay from './ScoreDisplay.jsx';
 import { buscarItensPorFase } from "../services/apiItensFase.js";
-import { useAudio } from "../hooks/useAudio";
-import TutorialModal from "./TutorialModal.jsx";
-import { tutorials } from "../data/tutorialData.js";
+import { useAudio } from "../hooks/useAudio"; // Importando o hook de áudio
 
 const GRAVIDADE = 0.8;
 const FORCA_PULO = 18;
@@ -58,7 +56,6 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
     const mundo_id = parseInt(mundoId);
     const fase_id = parseInt(faseId);
 
-    const [isTutorialOpen, setIsTutorialOpen] = useState(false);
     const [estadoJogo, setEstadoJogo] = useState("carregando");
     const [tempoInicioFase, setTempoInicioFase] = useState(Date.now());
     const [tempoDecorridoParaScore, setTempoDecorridoParaScore] = useState(0);
@@ -78,6 +75,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
     
     const gameLoopRef = useRef();
 
+    // Efeito para tocar a música de fundo do mundo
     useEffect(() => {
         const musicaMundo = `musica-mundo-${mundo_id}`;
         const audio = playSound(musicaMundo, true);
@@ -85,16 +83,6 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             if (audio) audio.pause();
         };
     }, [mundo_id, playSound]);
-
-    useEffect(() => {
-        if (fase_id === 1) {
-            const storageKey = `tutorial_mundo_${mundo_id}_visto`;
-            const tutorialJaVisto = sessionStorage.getItem(storageKey);
-            if (!tutorialJaVisto) {
-                setIsTutorialOpen(true);
-            }
-        }
-    }, [mundo_id, fase_id]);
 
     const handleFaseTermina = useCallback(({ tempoFinalMs, motivo }) => {
         if (estadoJogo === "finalizado") return;
@@ -209,7 +197,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
     }, [puzzleAtual.fruta, playSound]);
 
     const gameLoop = useCallback(() => {
-        if (estadoJogo !== "jogando" || isPuzzleOpen || isTutorialOpen) {
+        if (estadoJogo !== "jogando" || isPuzzleOpen) {
             gameLoopRef.current = requestAnimationFrame(gameLoop);
             return;
         }
@@ -247,7 +235,7 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
             }
         }
         gameLoopRef.current = requestAnimationFrame(gameLoop);
-    }, [estadoJogo, isPuzzleOpen, isTutorialOpen, teclasPressionadas, personagemPos.x, personagemPos.y, frutas, handlePegarFruta, colisaoAtiva]);
+    }, [estadoJogo, isPuzzleOpen, teclasPressionadas, personagemPos.x, personagemPos.y, frutas, handlePegarFruta, colisaoAtiva]);
  
     useEffect(() => {
         gameLoopRef.current = requestAnimationFrame(gameLoop);
@@ -314,36 +302,23 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
         }
     };
 
+    // --- Handlers com som para os botões ---
     const handleOpenConfig = () => { playSound('click'); setIsConfigOpen(true); };
     const handleVoltarAoMapa = () => { playSound('click'); navigate("/mapa-do-jogo", { state: { jogador, mundo_id } }); };
+    const handleAvancar = () => { playSound('click'); navigate(`/mundo/${mundo_id}/fase/${fase_id + 1}`, { state: { jogador } }); };
     const handleRetry = () => { playSound('click'); inicializarFase(); };
     const handlePausar = () => { playSound('click'); setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando'); };
     const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
     const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
-    
-    // ✅ FUNÇÃO ATUALIZADA
-    const handleCloseTutorial = () => {
-        const storageKey = `tutorial_mundo_${mundo_id}_visto`;
-        sessionStorage.setItem(storageKey, 'true');
-        setIsTutorialOpen(false);
-        // Reinicia o cronômetro para começar do zero após o tutorial
-        setTempoInicioFase(Date.now());
-    };
 
     if (estadoJogo === "carregando") { return <div className="loading-screen-1">Carregando fase...</div>; }
     if (estadoJogo === "erro") { return <div className="error-screen-1">Ocorreu um erro ao carregar a fase.</div>; }
 
     return (
         <section className="level-section">
-            <TutorialModal 
-                isOpen={isTutorialOpen}
-                onClose={handleCloseTutorial}
-                steps={tutorials[mundo_id]}
-            />
-        
             {estadoJogo === "jogando" && (
                 <Cronometro
-                    isPaused={isPuzzleOpen || estadoJogo === 'pausado' || isTutorialOpen}
+                    isPaused={isPuzzleOpen || estadoJogo === 'pausado'}
                     tempoInicioFase={tempoInicioFase}
                     limiteTempoFase={TEMPO_1_ESTRELA * 1000}
                     onTempoTick={handleTempoTick}
@@ -352,20 +327,37 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
                     onDicaLiberada={handleDicaLiberada}
                 />
             )}
-            
             <div className="level-container">
                 <img src="/level-1-background.svg" alt="fundo-de-floresta" className="level-1-bg" />
-                <div className="clouds-wrapper"><img src="/clouds.svg" alt="nuvens" className="clouds" /><img src="/clouds.svg" alt="nuvens" className="clouds delay" /></div>
-                <div className="trees-wrapper"><img src="/trees-transparent.svg" alt="pinheiros" className="pines" /><img src="/trees-transparent.svg" alt="pinheiros" className="pines delay" /></div>
+
+                <div className="clouds-wrapper">
+                    <img src="/clouds.svg" alt="nuvens" className="clouds" />
+                    <img src="/clouds.svg" alt="nuvens" className="clouds delay" />
+                </div>
+
+                <div className="trees-wrapper">
+                    <img src="/trees-transparent.svg" alt="pinheiros" className="pines" />
+                    <img src="/trees-transparent.svg" alt="pinheiros" className="pines delay" />
+                </div>
+
                 <div className="chao"></div>
+
                 <Personagem pos={personagemPos} direcao={direcaoPersonagem} />
+                
                 {frutas.map(fruta => !fruta.pega && <Fruta key={fruta.id} fruta={fruta} />)}
             </div>
 
             <header>
-                <button className="level-settings-btn" onClick={handleOpenConfig}><img src="/Settings.svg" alt="Configurações" /></button>
+                <button className="level-settings-btn" onClick={handleOpenConfig}>
+                    <img src="/Settings.svg" alt="Configurações" />
+                </button>
+
                 <ScoreDisplay tempoDecorridoMs={tempoDecorridoParaScore} dicasTotaisUsadas={dicasTotaisUsadas} />
-                <div className="timer"><img src="/timer.svg" alt="Cronômetro" /><p className="seconds">{tempoExibido}</p></div>
+
+                <div className="timer">
+                    <img src="/timer.svg" alt="Cronômetro" />
+                    <p className="seconds">{tempoExibido}</p>
+                </div>
             </header>
 
             <Modal isOpen={isPuzzleOpen} title="Qual o nome da fruta?" variant="puzzle">
@@ -376,7 +368,9 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
                             {puzzleAtual.slotsResposta.map((letraObj, index) => (
                                 <div key={index} className="slot-resposta" onDrop={(e) => handleDropLetra(e, index)}>
                                     {letraObj && (
-                                        <div className="letra-arrastavel" draggable onDragStart={(e) => handleDragStart(e, letraObj, 'slot', index)}>{letraObj.letra}</div>
+                                        <div className="letra-arrastavel" draggable onDragStart={(e) => handleDragStart(e, letraObj, 'slot', index)}>
+                                            {letraObj.letra}
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -386,17 +380,23 @@ function Mundo1_Gameplay ({ jogador, onFaseCompleta }) {
                         {puzzleAtual.letrasGrid.map((letraObj, index) => (
                             <div key={letraObj?.id || index} className="slot-grid">
                                 {letraObj && (
-                                    <div className={`letra-arrastavel letra-arrastavel-${index + 1}`} draggable onDragStart={(e) => handleDragStart(e, letraObj, 'grid', index)}>{letraObj.letra}</div>
+                                    <div className={`letra-arrastavel letra-arrastavel-${index + 1}`} draggable onDragStart={(e) => handleDragStart(e, letraObj, 'grid', index)}>
+                                        {letraObj.letra}
+                                    </div>
                                 )}
                             </div>
                         ))}
                     </div>
-                    <div className="balao-dicas"><img src="/baloon.svg" alt="" className="baloon" /><p id="hint-text">{dicaExibida}</p></div>
+                    <div className="balao-dicas">
+                        <img src="/baloon.svg" alt="" className="baloon" />
+                        <p id="hint-text">{dicaExibida}</p>
+                    </div>
                 </div>
             </Modal>
             
-            <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
+           <Modal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} variant="config">
                 <div className="btn-level-grid">
+                    {/* Botões atualizados */}
                     <button className={`btn music-btn ${isMusicMuted ? 'grayscale' : ''}`} onClick={toggleMusic}>
                         <div></div> música
                     </button>
