@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import CaçaPalavras from './CaçaPalavras'; // O componente do jogo em si
+import CaçaPalavras from './CaçaPalavras';
 import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
 import ScoreDisplay from './ScoreDisplay.jsx';
-import '../styles/Mundo4.css'; // Estilos para o novo mundo
-import { useAudio } from "../hooks/useAudio"; // Importando o hook de áudio
+import '../styles/Mundo4.css';
+import { useAudio } from "../hooks/useAudio";
+import TutorialModal from "./TutorialModal.jsx"; // 1. Importar o modal de tutorial
+import { tutorials } from "../data/tutorialData.js"; // 2. Importar os dados do tutorial
 
 // --- Dados mockados para as fases do Mundo 4 ---
 const fasesMundo4 = {
@@ -45,10 +47,16 @@ const formatTime = (timeInMs) => {
 };
 
 function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
-  const { faseId } = useParams();
+  const { mundoId, faseId } = useParams();
   const navigate = useNavigate();
   const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
   const faseAtual = fasesMundo4[faseId];
+
+  const mundo_id = parseInt(mundoId);
+  const fase_id = parseInt(faseId);
+
+  // 3. Adicionar estado para controlar o tutorial
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
 
   const [estadoJogo, setEstadoJogo] = useState("carregando");
   const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 });
@@ -62,6 +70,17 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
         if (audio) audio.pause();
     };
   }, [playSound]);
+
+  // 4. Efeito para verificar e mostrar o tutorial
+  useEffect(() => {
+    if (fase_id === 1) {
+        const storageKey = `tutorial_mundo_${mundo_id}_visto`;
+        const tutorialJaVisto = sessionStorage.getItem(storageKey);
+        if (!tutorialJaVisto) {
+            setIsTutorialOpen(true);
+        }
+    }
+  }, [mundo_id, fase_id]);
 
   const finalizarFase = useCallback((motivo = 'concluido') => {
       if (estadoJogo === "finalizado") return;
@@ -102,6 +121,12 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
   const handleRetry = () => { playSound('click'); window.location.reload(); };
   const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
   const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
+  const handleCloseTutorial = () => {
+    const storageKey = `tutorial_mundo_${mundo_id}_visto`;
+    sessionStorage.setItem(storageKey, 'true');
+    setIsTutorialOpen(false);
+    setTempo({ inicio: Date.now(), decorrido: 0 });
+  };
 
 
   if (estadoJogo === "carregando") return <div className="loading-screen">Carregando...</div>;
@@ -109,6 +134,11 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
 
   return (
     <section className="mundo4-section">
+      <TutorialModal 
+          isOpen={isTutorialOpen}
+          onClose={handleCloseTutorial}
+          steps={tutorials[mundo_id]}
+      />
       <header className="mundo4-header">
         <button className="level-settings-btn" onClick={handleOpenConfig}>
           <img src="/Settings.svg" alt="Configurações" />
@@ -122,7 +152,7 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
 
        {(estadoJogo === "jogando" || estadoJogo === "pausado") && (
           <Cronometro
-              isPaused={estadoJogo === "pausado"}
+              isPaused={estadoJogo === "pausado" || isTutorialOpen}
               tempoInicioFase={tempo.inicio}
               limiteTempoFase={TEMPO_1_ESTRELA * 1000}
               onTempoTick={(ms) => setTempo(t => ({ ...t, decorrido: ms }))}
