@@ -22,6 +22,42 @@
     z-index: 10;
 }
 
+.level-settings-btn{
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 10px;
+  background-color: #FABA00;
+  cursor: pointer;
+  border-bottom: #9F5704 5px solid;
+  border-left: #9F5704 5px solid;
+}
+
+.level-settings-btn img{
+    width: 75%;
+}
+
+.timer{
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.timer img {
+    width: 10rem;
+}
+
+.seconds{
+    position: absolute;
+    font-size: 1.8rem;
+    color: #FFFFFF;
+    font-family: "Bangers", system-ui;
+    min-width: 6rem;
+    left: 85%;
+    top: 45%;
+    transform: translate(-50%, -50%);
+}
+
 .mundo4-main {
     display: flex;
     justify-content: center;
