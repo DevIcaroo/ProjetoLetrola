@@ -1,23 +1,35 @@
-// routes/cacapalavras.js
+// backend/routes/cacapalavras.js
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
 /**
  * Rota para buscar a lista de palavras de uma fase do caça-palavras.
-    * Isto cumpre os critérios: "Buscar palavras" e "Retornar lista de palavras".
  */
 router.get('/:mundo/:fase', (req, res) => {
-    const { mundo, fase } = req.params;
+    // ✅ Converter parâmetros para números inteiros
+    const mundoNum = parseInt(req.params.mundo, 10);
+    const faseNum = parseInt(req.params.fase, 10);
+
+    // ✅ Adicionar validação para garantir que são números válidos
+    if (isNaN(mundoNum) || isNaN(faseNum) || mundoNum < 1 || faseNum < 1) {
+        console.error(`[Backend] Parâmetros inválidos recebidos: Mundo=${req.params.mundo}, Fase=${req.params.fase}`);
+        return res.status(400).json({ error: 'Parâmetros de mundo ou fase inválidos.' });
+    }
+
+    console.log(`[Backend] Rota /cacapalavras GET recebida para Mundo: ${mundoNum}, Fase: ${faseNum}`);
 
     // Consulta para buscar todas as palavras da fase especificada.
     const sql = `SELECT palavra FROM cacapalavras_palavras WHERE mundo = ? AND fase = ?`;
 
-    db.all(sql, [mundo, fase], (err, rows) => {
+    // ✅ Usar as variáveis numéricas na consulta
+    db.all(sql, [mundoNum, faseNum], (err, rows) => {
         if (err) {
-            console.error("Erro ao buscar palavras do caça-palavras:", err);
+            console.error("[Backend] Erro ao buscar palavras do caça-palavras:", err);
             return res.status(500).json({ error: 'Erro ao buscar palavras do caça-palavras.' });
         }
+        console.log(`[Backend] Palavras encontradas no DB para ${mundoNum}/${faseNum}:`, rows);
+        
         // Retorna um array simples com as palavras. Ex: ["BOLO", "PUDIM", "TORTA"]
         res.json(rows.map(r => r.palavra));
     });
@@ -25,28 +37,26 @@ router.get('/:mundo/:fase', (req, res) => {
 
 /**
  * Rota para validar uma palavra encontrada pelo jogador.
- * Isto cumpre os critérios: "Função de validação" e "Retornar feedback".
  */
 router.post('/validar', (req, res) => {
-    const { mundo, fase, palavra } = req.body;
+    // ✅ Converter parâmetros para números inteiros
+    const mundoNum = parseInt(req.body.mundo, 10);
+    const faseNum = parseInt(req.body.fase, 10);
+    const palavra = req.body.palavra;
     
-    // Valida se os dados necessários foram enviados.
-    if (!mundo || !fase || !palavra) {
-        return res.status(400).json({ error: 'Dados incompletos para validação.' });
+    // ✅ Adicionar validação
+    if (isNaN(mundoNum) || isNaN(faseNum) || !palavra) {
+        return res.status(400).json({ error: 'Dados incompletos ou inválidos para validação.' });
     }
 
-    // Consulta para verificar se a palavra enviada existe no banco de dados para aquela fase.
-    // Usamos toUpperCase() para garantir que a comparação não diferencia maiúsculas de minúsculas.
     const sql = `SELECT palavra FROM cacapalavras_palavras WHERE mundo = ? AND fase = ? AND palavra = ?`;
     
-    db.get(sql, [mundo, fase, palavra.toUpperCase()], (err, row) => {
+    // ✅ Usar as variáveis numéricas e converter palavra para maiúsculas
+    db.get(sql, [mundoNum, faseNum, palavra.toUpperCase()], (err, row) => {
         if (err) {
-            console.error("Erro ao validar palavra:", err);
+            console.error("[Backend] Erro ao validar palavra:", err);
             return res.status(500).json({ error: 'Erro ao validar palavra.' });
         }
-        
-        // Se 'row' for encontrado, a palavra está correta. A resposta é { "correta": true }.
-        // Se 'row' for nulo, a palavra está incorreta. A resposta é { "correta": false }.
         res.json({ correta: !!row });
     });
 });
