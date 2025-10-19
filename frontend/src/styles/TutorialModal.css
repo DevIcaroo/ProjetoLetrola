@@ -60,3 +60,175 @@
 .tutorial-btn:hover {
   transform: scale(1.05);
 }
+
+/* Media Queries para pc */
+@media (width: 1280px) {
+  .tutorial-image {
+    width: 38rem;
+    top: 8%;
+  }
+
+  .tutorial-text {
+    font-size: 1.6rem;
+    width: 20rem;
+    top: 36%;
+  }
+
+  .tutorial-btn {
+    font-size: 2.1rem;
+    bottom: 20%;
+  }
+}
+
+/* Media Queries para tablets */
+@media (height: 1366px){
+  .tutorial-image {
+    width: 40rem;
+    top: 20%;
+  }
+
+  .tutorial-text {
+    font-size: 1.8rem;
+    width: 22rem;
+    top: 37%;
+  }
+
+  .tutorial-btn {
+    font-size: 2.3rem;
+    bottom: 35.5%;
+  }
+}
+
+@media (width: 820px) {
+  .tutorial-image {
+    width: 36rem;
+    top: 22%;
+  }
+
+  .tutorial-text {
+    font-size: 1.6rem;
+    width: 19rem;
+    top: 40%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.8rem;
+    padding: 8px 40px;
+    bottom: 32%;
+  }
+}
+
+@media (width: 768px) {
+  .tutorial-image {
+    width: 32rem;
+    top: 20%;
+  }
+
+  .tutorial-text {
+    font-size: 1.4rem;
+    width: 16rem;
+    top: 38%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.6rem;
+    padding: 8px 35px;
+    bottom: 32.5%;
+  }
+}
+
+/* Media Queries para celulares */
+@media (width: 430px) {
+  .tutorial-image {
+    width: 25rem;
+    top: 27%;
+  }
+
+  .tutorial-text {
+    font-size: 1rem;
+    width: 12rem;
+    top: 43%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.2rem;
+    padding: 8px 30px;
+    bottom: 32%;
+  }
+}
+
+@media (width: 414px) {
+  .tutorial-image {
+    width: 25rem;
+    top: 25%;
+  }
+
+  .tutorial-text {
+    font-size: 1rem;
+    width: 12rem;
+    top: 42%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.4rem;
+    padding: 6px 25px;
+    bottom: 32.5%;
+  }
+}
+
+@media (width: 412px) {
+  .tutorial-image {
+    width: 25rem;
+    top: 25%;
+  }
+
+  .tutorial-text {
+    font-size: 1.1rem;
+    width: 13rem;
+    top: 42%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.4rem;
+    padding: 6px 25px;
+    bottom: 33%;
+  }
+}
+
+@media (width: 390px){
+  .tutorial-image {
+    width: 23rem;
+    top: 25%;
+  }
+
+  .tutorial-text {
+    font-size: 1rem;
+    width: 12rem;
+    top: 42%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.3rem;
+    padding: 6px 25px;
+    bottom: 33.5%;
+  }
+}
+
+@media (width: 360px) {
+  .tutorial-image {
+    width: 22rem;
+    top: 23%;
+  }
+
+  .tutorial-text {
+    font-size: 1rem;
+    width: 11rem;
+    top: 40%;
+  }
+
+  .tutorial-btn {
+    font-size: 1.2rem;
+    padding: 6px 20px;
+    bottom: 31.5%;
+  }
+}
