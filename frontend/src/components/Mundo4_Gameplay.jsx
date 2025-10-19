@@ -3,41 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import CaçaPalavras from './CaçaPalavras';
 import Modal from "./Modal.jsx";
 import Cronometro from "./Cronometro.jsx";
-import ScoreDisplay from './ScoreDisplay.jsx';
+import CruzadinhaScoreDisplay from './CruzadinhaScoreDisplay.jsx';
 import '../styles/Mundo4.css';
 import { useAudio } from "../hooks/useAudio";
 import TutorialModal from "./TutorialModal.jsx"; // 1. Importar o modal de tutorial
 import { tutorials } from "../data/tutorialData.js"; // 2. Importar os dados do tutorial
+import { buscarPalavrasDoNivel } from "../services/apiCacapalavras.js";
 
-// --- Dados mockados para as fases do Mundo 4 ---
-const fasesMundo4 = {
-  1: {
-    palavras: ['BOLO', 'PUDIM', 'TORTA'],
-    gridSize: 10,
-  },
-  2: {
-    palavras: ['COCADA', 'AÇAI', 'PICOLÉ', 'MANJAR', 'SORVETE'],
-    gridSize: 12,
-  },
-  3: {
-    palavras: ['CHOCOLATE', 'BOLINHO', 'BISCOITO', 'PAVÊ', 'PAÇOCA'],
-    gridSize: 15,
-  },
-  4: {
-    palavras: ['MOUSSE', 'BOMBOM', 'TAPIOCA', 'CHURROS', 'GELATINA', 'PANQUECA', 'ROCAMBOLE'],
-    gridSize: 18,
-  },
-  5: {
-    palavras: ['BANOFFE', 'CARAMELO', 'SUSPIRO', 'PANETONE', 'COOKIES', 'QUINDIM', 'PAMONHA'],
-    gridSize: 20,
-  },
-};
-
-// --- Constantes de Configuração do Jogo ---
+// --- Constantes ---
 const MUNDO_ID = 4;
-const TEMPO_3_ESTRELAS = 180; // 3 minutos
-const TEMPO_2_ESTRELAS = 300; // 5 minutos
-const TEMPO_1_ESTRELA = 480; // 8 minutos
+const TEMPO_3_ESTRELAS = 180;
+const TEMPO_2_ESTRELAS = 300;
+const TEMPO_1_ESTRELA = 480;
+
+// Função para determinar o gridSize (pode ser ajustada)
+const determinarGridSize = (palavras) => {
+    if (!palavras || palavras.length === 0) return 10;
+    const maiorPalavra = palavras.reduce((max, p) => Math.max(max, p.length), 0);
+    return Math.max(10, maiorPalavra + 2, Math.ceil(palavras.length * 1.5));
+};
 
 const formatTime = (timeInMs) => {
     const totalSeconds = Math.floor(timeInMs / 1000);
@@ -50,7 +34,6 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
   const { mundoId, faseId } = useParams();
   const navigate = useNavigate();
   const { playSound, isMusicMuted, toggleMusic, isSfxMuted, toggleSfx } = useAudio();
-  const faseAtual = fasesMundo4[faseId];
 
   const mundo_id = parseInt(mundoId);
   const fase_id = parseInt(faseId);
@@ -62,13 +45,13 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
   const [tempo, setTempo] = useState({ inicio: Date.now(), decorrido: 0 });
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [palavrasEncontradas, setPalavrasEncontradas] = useState([]);
+  const [palavrasDaFase, setPalavrasDaFase] = useState([]);
+  const [gridSize, setGridSize] = useState(10);
 
   // Efeito para tocar a música de fundo
   useEffect(() => {
     const audio = playSound(`musica-mundo-${MUNDO_ID}`, true);
-    return () => {
-        if (audio) audio.pause();
-    };
+    return () => { if (audio) audio.pause(); };
   }, [playSound]);
 
   // 4. Efeito para verificar e mostrar o tutorial
@@ -82,13 +65,36 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
     }
   }, [mundo_id, fase_id]);
 
+  // Efeito para buscar as palavras da API
+  useEffect(() => {
+    if (!jogador) {
+        navigate("/");
+        return;
+    }
+
+    const carregarPalavras = async () => {
+        setEstadoJogo("carregando");
+        const palavrasApi = await buscarPalavrasDoNivel(mundo_id, fase_id);
+        if (palavrasApi && palavrasApi.length > 0) {
+            setPalavrasDaFase(palavrasApi);
+            setGridSize(determinarGridSize(palavrasApi));
+            setPalavrasEncontradas([]);
+            setTempo({ inicio: Date.now(), decorrido: 0 });
+            setEstadoJogo("jogando");
+        } else {
+            console.error("Não foi possível carregar as palavras para a fase.");
+            setEstadoJogo("erro");
+        }
+    };
+
+    carregarPalavras();
+  }, [jogador, navigate, mundo_id, fase_id]);
+
   const finalizarFase = useCallback((motivo = 'concluido') => {
       if (estadoJogo === "finalizado") return;
       setEstadoJogo("finalizado");
-
       const tempoFinalSegundos = Math.floor(tempo.decorrido / 1000);
       let estrelas = 0;
-
       if (motivo !== 'tempo_esgotado') {
           if (tempoFinalSegundos <= TEMPO_3_ESTRELAS) estrelas = 3;
           else if (tempoFinalSegundos <= TEMPO_2_ESTRELAS) estrelas = 2;
@@ -103,24 +109,18 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
   };
 
   useEffect(() => {
-    if (faseAtual && palavrasEncontradas.length === faseAtual.palavras.length) {
+    if (estadoJogo === "jogando" && palavrasDaFase.length > 0 && palavrasEncontradas.length === palavrasDaFase.length) {
       finalizarFase('concluido');
     }
-  }, [palavrasEncontradas, faseAtual, finalizarFase]);
+  }, [palavrasEncontradas, palavrasDaFase, estadoJogo, finalizarFase]);
 
-
-  useEffect(() => {
-    if (!jogador) navigate("/");
-    else setEstadoJogo("jogando");
-  }, [jogador, navigate]);
-
-  // --- Handlers com som para os botões ---
   const handleOpenConfig = () => { playSound('click'); setIsConfigOpen(true); };
   const handleVoltarAoMapa = () => { playSound('click'); navigate("/mapa-do-jogo", { state: { jogador, mundo_id: MUNDO_ID } }); };
   const handlePausar = () => { playSound('click'); setEstadoJogo(estadoJogo === 'jogando' ? 'pausado' : 'jogando'); };
   const handleRetry = () => { playSound('click'); window.location.reload(); };
   const handleNavigateAjuda = () => { playSound('click'); navigate('/ajuda'); };
   const handleCloseConfig = () => { playSound('click'); setIsConfigOpen(false); };
+  // 5. Função para fechar o tutorial e reiniciar o cronômetro
   const handleCloseTutorial = () => {
     const storageKey = `tutorial_mundo_${mundo_id}_visto`;
     sessionStorage.setItem(storageKey, 'true');
@@ -128,13 +128,14 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
     setTempo({ inicio: Date.now(), decorrido: 0 });
   };
 
-
-  if (estadoJogo === "carregando") return <div className="loading-screen">Carregando...</div>;
-  if (!faseAtual) return <div className="error-screen">Fase não encontrada!</div>;
+  if (estadoJogo === "carregando") return <div className="loading-screen">Carregando Caça-Palavras...</div>;
+  if (estadoJogo === "erro") return <div className="error-screen">Erro ao carregar o Caça-Palavras. Tente novamente.</div>;
+  if (palavrasDaFase.length === 0) return <div className="error-screen">Nenhuma palavra encontrada para esta fase.</div>;
 
   return (
     <section className="mundo4-section">
-      <TutorialModal 
+      {/* 6. Renderizar o modal de tutorial */}
+      <TutorialModal
           isOpen={isTutorialOpen}
           onClose={handleCloseTutorial}
           steps={tutorials[mundo_id]}
@@ -143,7 +144,7 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
         <button className="level-settings-btn" onClick={handleOpenConfig}>
           <img src="/Settings.svg" alt="Configurações" />
         </button>
-        <ScoreDisplay tempoDecorridoMs={tempo.decorrido} />
+        <CruzadinhaScoreDisplay tempoDecorridoMs={tempo.decorrido} />
         <div className="timer">
             <img src="/timer.svg" alt="Cronômetro" />
             <p className="seconds">{formatTime(tempo.decorrido)}</p>
@@ -152,6 +153,7 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
 
        {(estadoJogo === "jogando" || estadoJogo === "pausado") && (
           <Cronometro
+              // 7. Pausar o cronômetro se o tutorial estiver aberto
               isPaused={estadoJogo === "pausado" || isTutorialOpen}
               tempoInicioFase={tempo.inicio}
               limiteTempoFase={TEMPO_1_ESTRELA * 1000}
@@ -162,8 +164,8 @@ function Mundo4_Gameplay({ jogador, onFaseCompleta }) {
 
       <main className="mundo4-main">
         <CaçaPalavras
-          palavras={faseAtual.palavras}
-          gridSize={faseAtual.gridSize}
+          palavras={palavrasDaFase}
+          gridSize={gridSize}
           onPalavraEncontrada={handlePalavraEncontrada}
         />
       </main>
