@@ -12,7 +12,7 @@ import { tutorials } from "../data/tutorialData.js";
 // --- Constantes ---
 const MUNDO_ID = 3;
 const DOUBLE_CLICK_DELAY = 300;
-const TEMPO_3_ESTRELas = 180;
+const TEMPO_3_ESTRELAS = 180;
 const TEMPO_2_ESTRELAS = 360;
 const TEMPO_1_ESTRELA = 500;
 
