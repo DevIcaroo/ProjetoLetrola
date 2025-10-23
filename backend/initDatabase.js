@@ -207,7 +207,7 @@ function seedDatabase() {
       { mundo: 2, fase: 4, nome: 'ÁGUA DE COCO', dica1: 'A primeira palavra tem acento.', dica2: 'A última palavra é "COCO".', imagem_url: '/agua_de_coco.svg' },
       { mundo: 2, fase: 4, nome: 'ACHOCOLATADO', dica1: 'É uma palavra bem grande!', dica2: 'Começa com "A" e termina com "DO".', imagem_url: '/achocolatado.svg' },
       { mundo: 2, fase: 5, nome: 'REFRIGERANTE', dica1: 'A sílaba do meio é "GE".', dica2: 'Termina com "RANTE".', imagem_url: '/refrigerante.svg' },
-      { mundo: 2, fase: 5, nome: 'CHÁ', dica1: 'É uma palavra bem curta, com 3 letras.', dica2: 'Começa com as letras C e H juntas.', imagem_url: '/cha.svg' },
+      { mundo: 2, fase: 5, nome: 'CAPUCCINO', dica1: 'É uma bebida com café e leite.', dica2: 'Começa com as letras C e A juntas.', imagem_url: '/capuccino.svg' },
       { mundo: 2, fase: 5, nome: 'CHAMITO', dica1: 'Começa com o som de "CHA".', dica2: 'Termina com a sílaba "TO".', imagem_url: '/chamito.svg' },
     ];
 
