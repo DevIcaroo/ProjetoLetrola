@@ -40,16 +40,35 @@ function Fase() {
 
   // Lida com a conclusão de uma fase, agora com som
   const handleFaseCompleta = useCallback(async (resultado) => {
+    // Toca o som de vitória/derrota primeiro
     if (resultado.estrelas > 0) {
       playSound('vitoria');
     } else {
-      playSound('derrota');
+      // Se perdeu na última fase, ainda mostra o feedback normal
+      // (Não vai para os créditos se perder)
+      if (mundo_id === 4 && fase_id === 5) {
+         playSound('derrota');
+         setResultadoFinal({
+            title: "Tempo Esgotado!",
+            estrelas: 0,
+            tempoConclusao: resultado.tempoConclusao,
+            proximaMeta: `Para 3 estrelas, termine em ${formatTime(TEMPO_3_ESTRELAS, 's')}.` // Ajuste TEMPO_3_ESTRELAS se necessário para M4
+         });
+         setIsFeedbackOpen(true);
+         return; // Sai da função
+      }
+      playSound('derrota'); // Som de derrota para outras fases
     }
 
     try {
         await salvarProgresso(jogador.id, mundo_id, fase_id, resultado.estrelas, resultado.tempoConclusao);
     } catch (error) {
         console.error("Falha ao salvar o progresso:", error);
+    }
+
+    if (mundo_id === 4 && fase_id === 5 && resultado.estrelas > 0) {
+        navigate('/creditos');
+        return;
     }
 
     if (fase_id === 5) {
@@ -66,7 +85,7 @@ function Fase() {
         setIsFimDoMundoOpen(true);
     } else {
         setResultadoFinal({
-            title: resultado.estrelas > 0 ? "" : "Tempo Esgotado!",
+            title: resultado.estrelas > 0 ? "" : "",
             estrelas: resultado.estrelas,
             tempoConclusao: resultado.tempoConclusao,
             proximaMeta: `Para 3 estrelas, termine em ${formatTime(TEMPO_3_ESTRELAS, 's')}.`
