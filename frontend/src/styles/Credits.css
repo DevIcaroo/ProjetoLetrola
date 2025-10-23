@@ -1,0 +1,168 @@
+/* Importa as fontes */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@300..700&display=swap');
+
+.credits-section {
+    width: 100vw;
+    height: 100vh; /* Tela cheia */
+    display: flex; /* Centraliza a sequência final */
+    justify-content: center;
+    align-items: center;
+    font-family: 'Fredoka', sans-serif;
+    position: relative; /* Necessário para posicionar elementos filhos */
+    overflow: hidden; /* Esconde conteúdo que sai da tela */
+    background-color: #000; /* Fundo preto caso o vídeo falhe */
+}
+
+/* Vídeo de fundo */
+.credits-video-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: 0;
+    transform: translateX(-50%) translateY(-50%);
+    object-fit: cover; /* Cobre toda a área */
+}
+
+/* Overlay escuro (opcional) */
+.credits-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* Ajuste a opacidade */
+    z-index: 1;
+}
+
+/* Container dos créditos que rolam */
+.credits-scroll-container {
+    position: absolute;
+    bottom: 0; /* Começa fora da tela, em baixo */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    z-index: 2;
+    color: #fff8e2; /* Cor clara para contraste */
+    text-align: center;
+    /* Aplica a animação */
+    animation: scrollCredits 20s linear forwards; /* Ajuste a duração (20s) */
+}
+
+/* Animação de rolagem */
+@keyframes scrollCredits {
+    from {
+        bottom: -100%; /* Começa completamente abaixo da tela */
+        opacity: 1;
+    }
+    to {
+        bottom: 110%; /* Termina completamente acima da tela */
+        opacity: 1;
+    }
+}
+
+
+.credits-team-scroll {
+    margin-bottom: 3rem;
+}
+
+.credits-role {
+    margin-bottom: 2rem;
+}
+
+.credits-role h2 {
+    font-family: 'Bangers', cursive;
+    font-size: 2rem;
+    color: #FFFFFF;
+    margin-bottom: 0.4rem;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.credits-role p {
+    font-size: 1.2rem;
+    color: #ffffff;
+    line-height: 1.8;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Sequência Final (Logo + Botão) */
+.credits-end-sequence {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14rem;
+    z-index: 3;
+    animation: fadeInEnd 1s ease-in;
+}
+
+@keyframes fadeInEnd {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.credits-logo-final {
+    width: 250px; /* Ajuste o tamanho */
+    height: auto;
+    margin-bottom: 3rem;
+}
+
+/* Botão Jogar Novamente */
+.btn-jogar-novamente {
+    position: relative;
+    padding: 12px 45px;
+    border-radius: 30px;
+    border: none;
+    background-color: #FF2526; /* Vermelho */
+    color: white;
+    font-size: 1.5rem;
+    font-family: "Bangers", system-ui;
+    cursor: pointer;
+    border-bottom: #DA1213 6px solid;
+    border-left: #DA1213 6px solid;
+    transition: transform 0.2s;
+}
+
+.btn-jogar-novamente:hover {
+    transform: translateY(-3px) scale(1.05);
+}
+
+.btn-jogar-novamente div {
+    position: absolute;
+    width: 80%;
+    height: 20px;
+    border-radius: 20px;
+    background-color: #ffffff48;
+    left: 10%;
+    bottom: 45%;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .credits-title-scroll {
+        font-size: 2.8rem;
+    }
+    .credits-theme-scroll {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    .credits-role h2 {
+        font-size: 1.6rem;
+    }
+    .credits-role p {
+        font-size: 1rem;
+    }
+    .credits-logo-final {
+        width: 200px;
+        margin-bottom: 2rem;
+    }
+    .btn-jogar-novamente {
+        font-size: 1.3rem;
+        padding: 10px 35px;
+    }
+}
