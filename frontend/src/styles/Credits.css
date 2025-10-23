@@ -1,19 +1,17 @@
-/* Importa as fontes */
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Fredoka:wght@300..700&display=swap');
 
 .credits-section {
     width: 100vw;
-    height: 100vh; /* Tela cheia */
-    display: flex; /* Centraliza a sequência final */
+    height: 100vh;
+    display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Fredoka', sans-serif;
-    position: relative; /* Necessário para posicionar elementos filhos */
-    overflow: hidden; /* Esconde conteúdo que sai da tela */
-    background-color: #000; /* Fundo preto caso o vídeo falhe */
+    position: relative; 
+    overflow: hidden;
+    background-color: #000; 
 }
 
-/* Vídeo de fundo */
 .credits-video-bg {
     position: absolute;
     top: 50%;
@@ -24,43 +22,40 @@
     height: auto;
     z-index: 0;
     transform: translateX(-50%) translateY(-50%);
-    object-fit: cover; /* Cobre toda a área */
+    object-fit: cover;
 }
 
-/* Overlay escuro (opcional) */
 .credits-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.3); /* Ajuste a opacidade */
+    background-color: rgba(0, 0, 0, 0.3); 
     z-index: 1;
 }
 
-/* Container dos créditos que rolam */
 .credits-scroll-container {
     position: absolute;
-    bottom: 0; /* Começa fora da tela, em baixo */
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
     max-width: 500px;
     z-index: 2;
-    color: #fff8e2; /* Cor clara para contraste */
+    color: #fff8e2;
     text-align: center;
-    /* Aplica a animação */
-    animation: scrollCredits 20s linear forwards; /* Ajuste a duração (20s) */
+    animation: scrollCredits 20s linear forwards; 
 }
 
 /* Animação de rolagem */
 @keyframes scrollCredits {
     from {
-        bottom: -100%; /* Começa completamente abaixo da tela */
+        bottom: -100%;
         opacity: 1;
     }
     to {
-        bottom: 110%; /* Termina completamente acima da tela */
+        bottom: 110%; 
         opacity: 1;
     }
 }
@@ -79,17 +74,27 @@
     font-size: 2rem;
     color: #FFFFFF;
     margin-bottom: 0.4rem;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    letter-spacing: 2px;
+    text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
 }
 
 .credits-role p {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    font-weight: bold;
     color: #ffffff;
-    line-height: 1.8;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    line-height: 1.2;
+    text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
 }
 
-/* Sequência Final (Logo + Botão) */
 .credits-end-sequence {
     width: 100%;
     display: flex;
@@ -107,18 +112,17 @@
 }
 
 .credits-logo-final {
-    width: 250px; /* Ajuste o tamanho */
+    width: 250px; 
     height: auto;
     margin-bottom: 3rem;
 }
 
-/* Botão Jogar Novamente */
 .btn-jogar-novamente {
     position: relative;
     padding: 12px 45px;
     border-radius: 30px;
     border: none;
-    background-color: #FF2526; /* Vermelho */
+    background-color: #FF2526;
     color: white;
     font-size: 1.5rem;
     font-family: "Bangers", system-ui;
