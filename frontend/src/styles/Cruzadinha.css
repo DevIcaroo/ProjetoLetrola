@@ -157,18 +157,85 @@
     height: 50px;
 }
 
-#dica-ARCO{
-    top: 130px !important;
+/* estilização das imagens */
+
+#dica-FITA {
+    left: 8% !important;
 }
 
-#dica-ENFEITE{
-    top: -10px !important;
+#dica-FLOR {
+    top: 0% !important;
+    width: 45px;
+    height: 45px;
 }
 
-#dica-FITAS{
-    top: 230px !important;
+#dica-BOLA{
+    width: 45px;
+    height: 45px;
 }
 
+#dica-BANDEIRA{
+    top: 66% !important;
+    width: 40px;
+}
+
+#dica-CADEIRA{
+    left: 70% !important;
+    width: 45px;
+    height: 45px;
+}
+
+#dica-LAÇO{
+    left: 40% !important;
+    width: 45px;
+}
+
+#dica-TOALHA{
+    width: 43px;
+}
+
+#dica-VASO{
+    padding-bottom: 2%;
+}
+
+#dica-FAIXA{
+    left: 79% !important;
+}
+
+#dica-ESTRELA{
+    width: 40px;
+}
+
+#dica-BALÃO{
+    left: 68% !important;
+    width: 40px;
+    height: 40px;
+}
+
+#dica-MESA{
+    top: 46% !important;
+    left: 40% !important;
+}
+
+#dica-COPO{
+    top: 46% !important;
+    left: 58% !important;
+}
+
+#dica-CARTAZ{
+    width: 60px;
+    height: 60px;
+    top: 7% !important;
+}
+
+#dica-QUADROS{
+    width: 40px;
+}
+
+#dica-LANTEJOULA{
+    width: 40px;
+    top: 63% !important;
+}
 
 .cruzadinha-grid {
     display: grid;
@@ -242,8 +309,13 @@
     background-repeat: no-repeat;
 }
 
+@media (max-width: 1024px) {
+    .cruzadinha-grid-container{
+        left: 8rem;
+    }
+}
 
-@media (height: 1366px) {
+@media (height: 1366px) and (width: 1024px) {
     .cruzadinha-header{
         top: -12rem;
     }
@@ -255,17 +327,10 @@
     }
     .cruzadinha-grid-container {
         top: 15rem;
-        left: -5rem;
+        left: -6rem !important;
         transform: scale(1.4);
     }
 }
-
-@media (max-width: 1024px) {
-    .cruzadinha-grid-container{
-        left: 8rem;
-    }
-}
-
 
 /* Para Tablets e telas menores */
 @media (max-width: 821px) {
@@ -301,7 +366,7 @@
     .cruzadinha-grid-container {
         position: absolute;
         top: 40rem;
-        left: 6rem;
+        left: 12rem;
         transform: scale(1.2);
     }
 }
@@ -347,7 +412,7 @@
         transform: scale(1);
         position: absolute;
         top: 30rem;
-        left: 10%;
+        left: 10rem;
     }
 }
 
@@ -369,7 +434,7 @@
     .cruzadinha-grid-container{
         transform: scale(0.7);
         top: 15rem;
-        left: -2rem;
+        left: 4rem;
     }
 }
 
@@ -383,7 +448,7 @@
     font-size: 1.2rem;
     right: 14%;
     top: 42%
-  }
+    }
 
     .cruzadinha-main-content {
         margin-top: 50px;
@@ -407,7 +472,7 @@
     .cruzadinha-grid-container {
         transform: scale(0.7);
         top: 22rem;
-        left: -6rem;
+        left: -1rem;
         position: fixed;
     }
 }
