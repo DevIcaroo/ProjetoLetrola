@@ -25,9 +25,9 @@ const formatTime = (timeInMs) => {
 
 const dicaImagens = {
     'FITA': '/fita.svg', 'FLOR': '/flor.svg', 'BOLA': '/bola.svg',
-    'VELA': '/vela.svg', 'LAÇO': '/laco.svg', 'PAINEL': '/painel.svg', 'LÂMPADA': '/lampada.svg', 'BANDEIRA': '/bandeira.svg',
-    'BALÃO': '/balao.svg', 'ESTRELA': '/estrela.svg', 'CORDA': '/corda.svg', 'TECIDO': '/tecido.svg', 'GUIZO': '/guizo.svg',
-    'GLITTER': '/glitter.svg', 'POMPOM': '/pompom.svg', 'FITAS': '/fitas.svg', 'LUZES': '/pisca-pisca.svg', 'LANTEJOULA': '/lantejoula.svg', 'CONFETE': '/confete.svg', 'GUIRLANDA': '/guirlanda.svg',
+    'VELA': '/vela.svg', 'LAÇO': '/laco.svg', 'CADEIRA': '/cadeira.svg', 'TOALHA': '/toalha.svg', 'BANDEIRA': '/bandeira.svg',
+    'BALÃO': '/balao.svg', 'ESTRELA': '/estrela.svg', 'CESTA': '/cesta.svg', 'FAIXA': '/faixa.svg', 'VASO': '/vaso.svg',
+    'CARTAZ': '/cartaz.svg', 'CATAVENTO': '/catavento.svg', 'COPO': '/copo.svg', 'MESA': '/mesa.svg', 'LANTEJOULA': '/lantejoula.svg', 'ALMOFADA': '/almofada.svg', 'QUADROS': '/quadros.svg',
     'DECORAÇÃO': '/decoracao.svg', 'BANDEIRINHAS': '/bandeirinhas.svg', 'ENFEITE': '/enfeite.svg', 'COLORIDO': '/colorido.svg', 'PISCA': '/pisca.svg', 'FLORIDO': '/florido.svg', 'ARCO': '/arco.svg',
 };
 
